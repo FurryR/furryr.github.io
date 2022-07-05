@@ -267,6 +267,9 @@ window.onload = async () => {
 async function load() {
   let term = new RichTerminal(new Terminal(document.getElementById('test')));
   document.getElementById('test').focus();
+  document.onclick = () => {
+    document.getElementById('test').lastChild.focus();
+  };
   document.getElementById('test').lastChild.onblur = () => {
     document.getElementById('test').lastChild.focus();
   };
