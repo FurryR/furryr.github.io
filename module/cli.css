@@ -3,6 +3,7 @@
 }
 
 .console {
+  user-select: contain;
   color: white;
   background-color: black;
   font-family: Consolas;

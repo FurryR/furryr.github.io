@@ -9,10 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 export class Terminal {
     constructor(obj) {
-        [this.lock, this.buffer, this.input] = [
+        ;
+        [this.inputlock, this.buffer, this.input, this.obj] = [
             false,
             [],
-            (this.input = document.createElement('input')),
+            document.createElement('input'),
+            obj,
         ];
         this.input.style.opacity =
             this.input.style.width =
@@ -20,11 +22,12 @@ export class Terminal {
                     '0';
         this.input.title = this.input.placeholder = 'Cli-Web';
         this.input.addEventListener('compositionstart', () => {
-            this.lock = true;
+            this.inputlock = true;
         });
         this.input.addEventListener('compositionend', () => {
-            this.lock = false;
-            this.input.dispatchEvent(new InputEvent('input'));
+            this.inputlock = false;
+            if (this.input.value != '')
+                this.input.dispatchEvent(new InputEvent('input'));
         });
         this.input.addEventListener('keydown', (ev) => {
             if (ev.key.length > 1) {
@@ -34,25 +37,44 @@ export class Terminal {
             return true;
         });
         this.input.addEventListener('input', () => {
-            if (!this.lock) {
+            if (!this.inputlock) {
                 if (this.input.value.length > 1)
                     this.buffer.push(...this.input.value.slice(1));
-                this.resolveLast(this.input.value.slice(0, 1));
+                this.resolveLast(this.input.value[0]);
                 this.input.value = '';
             }
         });
-        this.obj = obj;
         this.obj.appendChild(this.input);
-        this.obj.onfocus = () => this.input.focus();
+        this.obj.addEventListener('focus', () => {
+            this.input.focus();
+        });
         this.rejectLast = () => void null;
         this.resolveLast = () => void null;
+    }
+    span(text) {
+        const d = document.createElement('span');
+        d.appendChild(new Text(text));
+        return d;
     }
     setContent(elem) {
         while (this.obj.children.length != 1)
             this.obj.removeChild(this.obj.children[0]);
+        let temp = '';
+        const f = new DocumentFragment();
         elem.forEach((obj) => {
-            this.obj.insertBefore(obj, this.input);
+            if (obj instanceof HTMLElement) {
+                if (temp != '') {
+                    f.appendChild(this.span(temp));
+                    temp = '';
+                }
+                f.appendChild(obj);
+            }
+            else
+                temp += obj;
         });
+        if (temp != '')
+            f.appendChild(this.span(temp));
+        this.obj.insertBefore(f, this.input);
     }
     getch() {
         this.rejectLast();
@@ -72,12 +94,8 @@ export class Terminal {
 }
 export class RichTerminal {
     constructor(obj) {
+        ;
         [this.obj, this._cursor, this.term_buffer] = [obj, 0, []];
-    }
-    span(text) {
-        const d = document.createElement('span');
-        d.appendChild(document.createTextNode(text));
-        return d;
     }
     putchar(elem) {
         if (elem instanceof HTMLElement) {
@@ -88,7 +106,7 @@ export class RichTerminal {
             if (elem == '\n')
                 this.term_buffer[this.cursor] = document.createElement('br');
             else
-                this.term_buffer[this.cursor] = this.span(elem);
+                this.term_buffer[this.cursor] = elem;
             this.cursor++;
         }
     }
@@ -105,13 +123,13 @@ export class RichTerminal {
         return this.term_buffer.length;
     }
     clear() {
-        this.term_buffer = [];
-        this.cursor = 0;
+        ;
+        [this.term_buffer, this.cursor] = [[], 0];
         this.obj.setContent(this.term_buffer);
     }
     setContent(elem) {
-        this.term_buffer = elem;
-        this.cursor = elem.length;
+        ;
+        [this.term_buffer, this.cursor] = [elem, elem.length];
         this.obj.setContent(elem);
     }
     getch() {
@@ -134,7 +152,7 @@ export class RichTerminal {
             const updateStr = (buffer, pos, str) => {
                 const d = [...buffer.slice(0, pos)];
                 for (const val of str)
-                    d.push(this.span(val));
+                    d.push(val);
                 return d;
             };
             const cursor_temp = this.cursor;
