@@ -3,10 +3,10 @@
 }
 
 .console {
-  user-select: contain;
+  /*user-select: contain;*/
   color: white;
   background-color: black;
-  font-family: Consolas;
+  font-family: Consolas, 'Lucida Console', Courier, monospace;
   font-size: large;
   border: none;
   outline: none;

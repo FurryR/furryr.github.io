@@ -9,52 +9,54 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 export class Terminal {
     constructor(obj) {
+        this.buffer = [];
+        this.inputlock = false;
+        this.resolve = [];
         ;
-        [this.inputlock, this.buffer, this.input, this.obj] = [
-            false,
-            [],
-            document.createElement('input'),
+        [this.obj, this.input] = [
             obj,
+            ((val) => {
+                val.style.opacity = val.style.width = val.style.height = '0';
+                val.title = val.placeholder = 'Cli-Web';
+                val.addEventListener('compositionstart', () => void (this.inputlock = true));
+                val.addEventListener('compositionend', () => {
+                    this.inputlock = false;
+                    if (val.value != '')
+                        val.dispatchEvent(new InputEvent('input'));
+                });
+                val.addEventListener('keydown', (ev) => {
+                    if (ev.key.length > 1) {
+                        this.ret(ev.key);
+                        return false;
+                    }
+                    return true;
+                });
+                val.addEventListener('input', () => {
+                    if (!this.inputlock) {
+                        if (val.value.length > 1)
+                            this.buffer.push(...val.value.slice(1));
+                        this.ret(val.value[0]);
+                        val.value = '';
+                    }
+                });
+                return val;
+            })(document.createElement('input'))
         ];
-        this.input.style.opacity =
-            this.input.style.width =
-                this.input.style.height =
-                    '0';
-        this.input.title = this.input.placeholder = 'Cli-Web';
-        this.input.addEventListener('compositionstart', () => {
-            this.inputlock = true;
-        });
-        this.input.addEventListener('compositionend', () => {
-            this.inputlock = false;
-            if (this.input.value != '')
-                this.input.dispatchEvent(new InputEvent('input'));
-        });
-        this.input.addEventListener('keydown', (ev) => {
-            if (ev.key.length > 1) {
-                this.resolveLast(ev.key);
-                return false;
-            }
-            return true;
-        });
-        this.input.addEventListener('input', () => {
-            if (!this.inputlock) {
-                if (this.input.value.length > 1)
-                    this.buffer.push(...this.input.value.slice(1));
-                this.resolveLast(this.input.value[0]);
-                this.input.value = '';
-            }
-        });
         this.obj.appendChild(this.input);
-        this.obj.addEventListener('focus', () => {
-            this.input.focus();
-        });
-        this.rejectLast = () => void null;
-        this.resolveLast = () => void null;
+        this.obj.addEventListener('click', () => this.input.focus());
     }
     span(text) {
         const d = document.createElement('span');
         d.appendChild(new Text(text));
         return d;
+    }
+    ret(val) {
+        if (this.resolve.length > 0) {
+            this.resolve[0](val);
+            this.resolve = this.resolve.slice(1);
+        }
+        else
+            this.buffer.push(val);
     }
     setContent(elem) {
         while (this.obj.children.length != 1)
@@ -77,25 +79,21 @@ export class Terminal {
         this.obj.insertBefore(f, this.input);
     }
     getch() {
-        this.rejectLast();
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (this.buffer.length != 0) {
                 resolve(this.buffer[0]);
                 this.buffer = this.buffer.slice(1);
                 return;
             }
-            this.resolveLast = (val) => {
-                this.rejectLast = this.resolveLast = () => void null;
-                resolve(val);
-            };
-            this.rejectLast = reject;
+            this.resolve.push((val) => resolve(val));
         });
     }
 }
 export class RichTerminal {
     constructor(obj) {
-        ;
-        [this.obj, this._cursor, this.term_buffer] = [obj, 0, []];
+        this.term_buffer = [];
+        this._cursor = 0;
+        this.obj = obj;
     }
     putchar(elem) {
         if (elem instanceof HTMLElement) {
@@ -123,13 +121,11 @@ export class RichTerminal {
         return this.term_buffer.length;
     }
     clear() {
-        ;
-        [this.term_buffer, this.cursor] = [[], 0];
+        this.cursor = (this.term_buffer = []).length;
         this.obj.setContent(this.term_buffer);
     }
     setContent(elem) {
-        ;
-        [this.term_buffer, this.cursor] = [elem, elem.length];
+        this.cursor = (this.term_buffer = elem).length;
         this.obj.setContent(elem);
     }
     getch() {
@@ -149,12 +145,9 @@ export class RichTerminal {
     }
     getline() {
         return __awaiter(this, void 0, void 0, function* () {
-            const updateStr = (buffer, pos, str) => {
-                const d = [...buffer.slice(0, pos)];
-                for (const val of str)
-                    d.push(val);
-                return d;
-            };
+            function updateStr(buffer, pos, str) {
+                return [...buffer.slice(0, pos), ...str];
+            }
             const cursor_temp = this.cursor;
             let fin = '', cursor = 0;
             for (;;) {
