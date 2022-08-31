@@ -1,3 +1,7 @@
+/**
+ * This program was under the MIT license.
+ * Copyright(c) FurryR 2022.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -7,23 +11,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+/**
+ * Terminal 类。
+ * 基本终端实现。
+ */
 export class Terminal {
+    /**
+     * 构造一个 Terminal。
+     * @param obj 目标元素。
+     */
     constructor(obj) {
         this.buffer = [];
         this.inputlock = false;
         this.resolve = [];
-        ;
-        [this.obj, this.input] = [
+        // 初始化。
+        void ([this.obj, this.input] = [
             obj,
             ((val) => {
+                // 设定input的样式。
                 val.style.opacity = val.style.width = val.style.height = '0';
+                // 允许辅助功能锁定此元素。
                 val.title = val.placeholder = 'Cli-Web';
+                // 多语言支持/输入法选字开始处理
                 val.addEventListener('compositionstart', () => void (this.inputlock = true));
+                // 多语言支持/输入法选字结束处理
                 val.addEventListener('compositionend', () => {
                     this.inputlock = false;
+                    /**
+                     * compositionend会在input事件的前后不定触发，此句确保了:
+                     * - 若input事件在compositionend后触发，则此事件仅用于重置输入锁。事件执行顺序:compositionend->input(由compositionend触发)->input(由浏览器触发,无效)
+                     * - 若input事件在compositionend前触发，则此事件会先重置输入锁，然后第二次触发input事件。事件执行顺序：input(由浏览器触发,无效)->compositionend->input(由compositionend触发)
+                     * 即，此事件确保了实际的input一定会在compositionend后触发。
+                     */
                     if (val.value != '')
-                        val.dispatchEvent(new InputEvent('input'));
+                        val.dispatchEvent(new InputEvent('input')); // 兼容性/触发输入事件
                 });
+                // 功能键处理
                 val.addEventListener('keydown', (ev) => {
                     if (ev.key.length > 1) {
                         this.ret(ev.key);
@@ -31,6 +54,7 @@ export class Terminal {
                     }
                     return true;
                 });
+                // 输入事件处理
                 val.addEventListener('input', () => {
                     if (!this.inputlock) {
                         if (val.value.length > 1)
@@ -41,8 +65,10 @@ export class Terminal {
                 });
                 return val;
             })(document.createElement('input'))
-        ];
+        ]);
+        // 追加input为最后一个元素。
         this.obj.appendChild(this.input);
+        // 自动聚焦。
         this.obj.addEventListener('click', () => this.input.focus());
     }
     span(text) {
@@ -58,6 +84,10 @@ export class Terminal {
         else
             this.buffer.push(val);
     }
+    /**
+     * 设定 Terminal 的内容。
+     * @param elem 要写入的内容。
+     */
     setContent(elem) {
         while (this.obj.children.length != 1)
             this.obj.removeChild(this.obj.children[0]);
@@ -78,6 +108,10 @@ export class Terminal {
             f.appendChild(this.span(temp));
         this.obj.insertBefore(f, this.input);
     }
+    /**
+     * 从 Terminal 读取一个字。不回显。
+     * @returns 用于获得用户输入内容的 Promise。
+     */
     getch() {
         return new Promise((resolve) => {
             if (this.buffer.length != 0) {
@@ -89,7 +123,16 @@ export class Terminal {
         });
     }
 }
+/**
+ * RichTerminal 类。
+ * 更好的 Terminal 包装。
+ * 注意:RichTerminal 和 Terminal 不应并用。
+ */
 export class RichTerminal {
+    /**
+     * 构造一个 RichTerminal。
+     * @param obj 目标 Terminal。
+     */
     constructor(obj) {
         this.term_buffer = [];
         this._cursor = 0;
@@ -108,29 +151,53 @@ export class RichTerminal {
             this.cursor++;
         }
     }
+    /**
+     * 获得当前光标位置。
+     */
     get cursor() {
         return this._cursor;
     }
+    /**
+     * 设置当前光标位置。
+     */
     set cursor(newVal) {
         if (newVal > this.length)
             this._cursor = this.length;
         else
             this._cursor = newVal;
     }
+    /**
+     * 获得当前缓冲区大小。
+     */
     get length() {
         return this.term_buffer.length;
     }
+    /**
+     * 清除 Terminal 的内容。
+     */
     clear() {
         this.cursor = (this.term_buffer = []).length;
         this.obj.setContent(this.term_buffer);
     }
+    /**
+     * 对 Terminal setContent 的包装。
+     * @param elem 要写入的内容。
+     */
     setContent(elem) {
         this.cursor = (this.term_buffer = elem).length;
         this.obj.setContent(elem);
     }
+    /**
+     * 对 Terminal getch 的包装。
+     * @returns 用于获得用户输入内容的Promise。
+     */
     getch() {
         return this.obj.getch();
     }
+    /**
+     * 在 Terminal 追加写入多个字符串或元素。
+     * @param str 要写入的字符串。
+     */
     write(...str) {
         for (const i of str) {
             if (i instanceof HTMLElement) {
@@ -143,6 +210,9 @@ export class RichTerminal {
         }
         this.obj.setContent(this.term_buffer);
     }
+    /**
+     * 获得一行文字，不带换行。回显。
+     */
     getline() {
         return __awaiter(this, void 0, void 0, function* () {
             function updateStr(buffer, pos, str) {
