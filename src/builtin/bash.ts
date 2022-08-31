@@ -28,7 +28,7 @@ export default {
         '$ '
       )
       ret = await handler.system(await handler.term.getline())
-      if (ret == -2) return 0
+      if (ret == -1) return 0
       //if (r != -1) ret = r;
     }
   }

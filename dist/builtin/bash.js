@@ -23,7 +23,7 @@ export default {
             for (;;) {
                 handler.term.write(CSSText('Browser', { color: 'limegreen' }), ':', CSSText('~', { color: 'blue' }), '$ ');
                 ret = yield handler.system(yield handler.term.getline());
-                if (ret == -2)
+                if (ret == -1)
                     return 0;
                 //if (r != -1) ret = r;
             }
