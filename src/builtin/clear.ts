@@ -5,7 +5,7 @@ export default {
   version: '1.0.0',
   desc: '清屏',
   url: '/dist/builtin/clear.js',
-  async start(handler: Handler): Promise<number> {
+  start: async (handler: Handler): Promise<number> => {
     handler.term.clear()
     return 0
   }

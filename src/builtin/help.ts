@@ -1,11 +1,12 @@
-import { App, Handler, Link } from '../util.js'
+import { App, Handler } from '../util.js'
 
 export default {
   name: 'help',
   version: '1.0.0',
   desc: '内嵌帮助',
   url: '/dist/builtin/help.js',
-  async start(handler: Handler): Promise<number> {
+  start: async (handler: Handler): Promise<number> => {
+    const { Link } = await import('../../src/util.js')
     handler.term.write('builtin help, version 1.1.0 (javascript-browser)\n')
     handler.term.write('若要获得所有可用的命令，请使用 apt list。\n')
     handler.term.write(

@@ -14,7 +14,11 @@ export default {
             '/dist/builtin/echo.js',
             '/dist/builtin/exit.js',
             '/dist/builtin/help.js',
-            '/dist/builtin/ls.js'
+            '/dist/builtin/ls.js',
+            '/dist/builtin/cat.js',
+            '/dist/builtin/mkdir.js',
+            '/dist/builtin/rm.js',
+            '/dist/builtin/touch.js'
         ];
         console.log('init start');
         const handler = new Handler(new RichTerminal(term), fs);

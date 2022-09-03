@@ -1,13 +1,14 @@
-import { App, CSSText, Handler, Link } from '../util.js'
+import { App, Handler } from '../util.js'
 
 export default {
   name: 'bash',
   version: '1.0.0',
   desc: '内嵌命令行交互程序',
   url: '/dist/builtin/bash.js',
-  async start(handler: Handler): Promise<number> {
+  start: async (handler: Handler): Promise<number> => {
+    const { CSSText, Link } = await import('../../src/util.js')
     handler.term.write(
-      'Welcome to FurryR\'s blog v1.1.0 (cli-web 1.1.0-ghpages typescript)\n'
+      'Welcome to FurryR blog v1.2.0 (cli-web 1.2.0-ghpages typescript)\n'
     )
     handler.term.write(
       '  * Documentation: ',

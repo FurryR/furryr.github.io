@@ -1,4 +1,4 @@
-import { App, Handler, Link } from '../util.js'
+import { App, Handler, File } from '../util.js'
 interface PageIndex {
   title: string
   author: string
@@ -9,16 +9,32 @@ interface FriendIndex {
   url: string
   desc: string
 }
-let PAGE_LIST: PageIndex[] = [],
-  FRIEND_LIST: FriendIndex[] = []
-let moo_count = 0
 
 export default {
   name: 'blog',
-  version: '1.0.0',
+  version: '1.0.1',
   desc: '访问凌的博客',
   url: '/dist/builtin/blog.js',
-  async start(handler: Handler, args: string[]): Promise<number> {
+  start: async (handler: Handler, args: string[]): Promise<number> => {
+    const { File, Link } = await import('../../src/util.js')
+    if (handler.fs.test('/tmp/blog_friendlist') != 1) {
+      handler.fs.set('/tmp/blog_friendlist', new File('[]'))
+    }
+    if (handler.fs.test('/tmp/blog_pagelist') != 1) {
+      handler.fs.set('/tmp/blog_pagelist', new File('[]'))
+    }
+    if (handler.fs.test('/tmp/blog_moocount') != 1) {
+      handler.fs.set('/tmp/blog_moocount', new File('0'))
+    }
+    let PAGE_LIST: PageIndex[] = JSON.parse(
+      (handler.fs.get('/tmp/blog_pagelist') as File).content
+    )
+    let FRIEND_LIST: FriendIndex[] = JSON.parse(
+      (handler.fs.get('/tmp/blog_friendlist') as File).content
+    )
+    let moo_count: number = JSON.parse(
+      (handler.fs.get('/tmp/blog_moocount') as File).content
+    )
     if (PAGE_LIST.length == 0 || FRIEND_LIST.length == 0) {
       const temp: number = handler.term.cursor,
         jobs: number =
@@ -28,7 +44,9 @@ export default {
         try {
           const t = await fetch('/blog/page.json')
           if (t.ok) {
-            PAGE_LIST = (await t.json()) as PageIndex[]
+            const json = await t.json()
+            PAGE_LIST = json as PageIndex[]
+            handler.fs.set('/tmp/blog_pagelist', new File(JSON.stringify(json)))
           } else {
             throw new Error(
               `/blog/page.json request failed(${t.status} ${t.statusText})`
@@ -46,7 +64,12 @@ export default {
         try {
           const t = await fetch('/blog/friend.json')
           if (t.ok) {
-            FRIEND_LIST = (await t.json()) as FriendIndex[]
+            const json = await t.json()
+            FRIEND_LIST = json as FriendIndex[]
+            handler.fs.set(
+              '/tmp/blog_friendlist',
+              new File(JSON.stringify(json))
+            )
           } else {
             throw new Error(
               `/blog/friend.json request failed(${t.status} ${t.statusText})`
@@ -66,7 +89,7 @@ export default {
       case 'help': {
         handler.term.write('blog [COMMAND] [OPTIONS]...\n')
         handler.term.write('访问凌的博客。\n')
-        handler.term.write('- COMMANDS 命令选项:\n')
+        handler.term.write('命令：\n')
         handler.term.write('  help 显示帮助消息。\n')
         handler.term.write('  version 显示版本信息。\n')
         handler.term.write('  show [id] 显示编号为id的页面。\n')
@@ -106,7 +129,8 @@ export default {
           case 5: {
             handler.term.write(
               '我佩服你的毅力。\n诺，这是你要的涩涩链接:',
-              Link('涩涩！', 'https://5e.fit/ZMInO')
+              Link('涩涩！', 'https://5e.fit/ZMInO'),
+              '\n'
             )
             break
           }

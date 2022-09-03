@@ -5,7 +5,7 @@ export default {
   version: '1.0.0',
   desc: '退出终端',
   url: '/dist/builtin/exit.js',
-  async start(handler: Handler): Promise<number> {
+  start: async (handler: Handler): Promise<number> => {
     handler.term.write('logout\n')
     return -1
   }
