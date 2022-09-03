@@ -7,7 +7,7 @@ export default {
   url: '/dist/builtin/help.js',
   start: async (handler: Handler): Promise<number> => {
     const { Link } = await import('../../src/util.js')
-    handler.term.write('builtin help, version 1.1.0 (javascript-browser)\n')
+    handler.term.write('builtin help, version 1.2.0 (javascript-browser)\n')
     handler.term.write('若要获得所有可用的命令，请使用 apt list。\n')
     handler.term.write(
       'This page is based on Project ',

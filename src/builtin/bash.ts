@@ -28,7 +28,13 @@ export default {
         CSSText('~', { color: 'blue' }),
         '$ '
       )
-      ret = await handler.system(await handler.term.getline())
+      try {
+        ret = await handler.system(await handler.term.getline())
+      } catch (err) {
+        ret = 127
+        console.error(err)
+        handler.term.write('Aborted (core dumped)\n')
+      }
       if (ret == -1) return 0
       //if (r != -1) ret = r;
     }

@@ -53,7 +53,7 @@ export default {
             )
           }
         } catch (err) {
-          console.log(err)
+          console.error(err)
           handler.term.write('\n现在无法使用 blog，因为无法获得页面列表。\n')
           return 1
         }
@@ -76,7 +76,7 @@ export default {
             )
           }
         } catch (err) {
-          console.log(err)
+          console.error(err)
           handler.term.write('\n现在无法使用 blog，因为无法获得友链列表。\n')
           return 1
         }
