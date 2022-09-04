@@ -29,7 +29,7 @@
       //   "./types/*"
       // ]
     },
-    "target": "ESNext",
+    "target": "ES6",
     "outDir": "dist",
     "declaration": true
   },

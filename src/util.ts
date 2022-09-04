@@ -153,7 +153,7 @@ export class Directory {
    */
   static from(s: RawDirectory): Directory {
     const map: Map<string, RawFile | RawDirectory> = new Map(
-      Object.entries(s.content)
+      Object.keys(s.content).map(value => [value, s.content[value]])
     )
     const ret: Map<string, File | Directory> = new Map()
     map.forEach((val, key) => {

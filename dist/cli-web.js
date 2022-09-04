@@ -2,87 +2,28 @@
  * This program was under the MIT license.
  * Copyright(c) FurryR 2022.
  */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 /**
  * Terminal 类。
  * 基本终端实现。
  */
 export class Terminal {
-    obj;
-    input;
-    buffer = [];
-    inputlock = false;
-    span(text) {
-        const d = document.createElement('span');
-        let tmp = '';
-        for (const char of text) {
-            if (char != ' ') {
-                tmp += char;
-            }
-            else {
-                if (tmp != '') {
-                    d.appendChild(new Text(tmp));
-                    tmp = '';
-                }
-                d.innerHTML += '&nbsp;';
-            }
-        }
-        if (tmp != '')
-            d.appendChild(new Text(tmp));
-        d.innerHTML += '';
-        return d;
-    }
-    resolve = [];
-    ret(val) {
-        if (this.resolve.length > 0) {
-            this.resolve[0](val);
-            this.resolve = this.resolve.slice(1);
-        }
-        else
-            this.buffer.push(val);
-    }
-    /**
-     * 设定 Terminal 的内容。
-     * @param elem 要写入的内容。
-     */
-    setContent(elem) {
-        while (this.obj.children.length != 1)
-            this.obj.removeChild(this.obj.children[0]);
-        let temp = '';
-        const f = new DocumentFragment();
-        elem.forEach((obj) => {
-            if (obj instanceof HTMLElement) {
-                if (temp != '') {
-                    f.appendChild(this.span(temp));
-                    temp = '';
-                }
-                f.appendChild(obj);
-            }
-            else
-                temp += obj;
-        });
-        if (temp != '')
-            f.appendChild(this.span(temp));
-        this.obj.insertBefore(f, this.input);
-    }
-    /**
-     * 从 Terminal 读取一个字。不回显。
-     * @returns 用于获得用户输入内容的 Promise。
-     */
-    getch() {
-        return new Promise((resolve) => {
-            if (this.buffer.length != 0) {
-                resolve(this.buffer[0]);
-                this.buffer = this.buffer.slice(1);
-                return;
-            }
-            this.resolve.push((val) => resolve(val));
-        });
-    }
     /**
      * 构造一个 Terminal。
      * @param obj 目标元素。
      */
     constructor(obj) {
+        this.buffer = [];
+        this.inputlock = false;
+        this.resolve = [];
         // 初始化。
         void ([this.obj, this.input] = [
             obj,
@@ -130,6 +71,72 @@ export class Terminal {
         // 自动聚焦。
         this.obj.addEventListener('click', () => this.input.focus());
     }
+    span(text) {
+        const d = document.createElement('span');
+        let tmp = '';
+        for (const char of text) {
+            if (char != ' ') {
+                tmp += char;
+            }
+            else {
+                if (tmp != '') {
+                    d.appendChild(new Text(tmp));
+                    tmp = '';
+                }
+                d.innerHTML += '&nbsp;';
+            }
+        }
+        if (tmp != '')
+            d.appendChild(new Text(tmp));
+        d.innerHTML += '';
+        return d;
+    }
+    ret(val) {
+        if (this.resolve.length > 0) {
+            this.resolve[0](val);
+            this.resolve = this.resolve.slice(1);
+        }
+        else
+            this.buffer.push(val);
+    }
+    /**
+     * 设定 Terminal 的内容。
+     * @param elem 要写入的内容。
+     */
+    setContent(elem) {
+        while (this.obj.children.length != 1)
+            this.obj.removeChild(this.obj.children[0]);
+        let temp = '';
+        const f = new DocumentFragment();
+        elem.forEach((obj) => {
+            if (obj instanceof HTMLElement) {
+                if (temp != '') {
+                    f.appendChild(this.span(temp));
+                    temp = '';
+                }
+                f.appendChild(obj);
+            }
+            else
+                temp += obj;
+        });
+        if (temp != '')
+            f.appendChild(this.span(temp));
+        this.obj.insertBefore(f, this.input);
+    }
+    /**
+     * 从 Terminal 读取一个字。不回显。
+     * @returns 用于获得用户输入内容的 Promise。
+     */
+    getch() {
+        return new Promise((resolve) => {
+            if (this.buffer.length != 0) {
+                resolve(this.buffer[0]);
+                this.buffer = this.buffer.slice(1);
+                return;
+            }
+            this.resolve.push((val) => resolve(val));
+        });
+    }
 }
 /**
  * RichTerminal 类。
@@ -137,9 +144,15 @@ export class Terminal {
  * 注意:RichTerminal 和 Terminal 不应并用。
  */
 export class RichTerminal {
-    obj;
-    term_buffer = [];
-    _cursor = 0;
+    /**
+     * 构造一个 RichTerminal。
+     * @param obj 目标 Terminal。
+     */
+    constructor(obj) {
+        this.term_buffer = [];
+        this._cursor = 0;
+        this.obj = obj;
+    }
     putchar(elem) {
         if (elem instanceof HTMLElement) {
             this.term_buffer[this.cursor] = elem;
@@ -215,53 +228,48 @@ export class RichTerminal {
     /**
      * 获得一行文字，不带换行。回显。
      */
-    async getline() {
-        function updateStr(buffer, pos, str) {
-            return [...buffer.slice(0, pos), ...str];
-        }
-        const cursor_temp = this.cursor;
-        let fin = '', cursor = 0;
-        for (;;) {
-            const i = await this.getch();
-            switch (i) {
-                case 'ArrowLeft': {
-                    if (cursor > 0)
-                        cursor--;
-                    break;
-                }
-                case 'ArrowRight': {
-                    if (cursor < fin.length)
-                        cursor++;
-                    break;
-                }
-                case 'Backspace': {
-                    if (cursor > 0) {
-                        fin = fin.slice(0, cursor - 1) + fin.slice(cursor--);
-                        this.term_buffer = updateStr(this.term_buffer, (this.cursor = cursor_temp), Array.from(fin));
-                        this.obj.setContent(this.term_buffer);
+    getline() {
+        return __awaiter(this, void 0, void 0, function* () {
+            function updateStr(buffer, pos, str) {
+                return [...buffer.slice(0, pos), ...str];
+            }
+            const cursor_temp = this.cursor;
+            let fin = '', cursor = 0;
+            for (;;) {
+                const i = yield this.getch();
+                switch (i) {
+                    case 'ArrowLeft': {
+                        if (cursor > 0)
+                            cursor--;
+                        break;
                     }
-                    break;
-                }
-                case 'Enter': {
-                    this.cursor = this.length;
-                    this.write('\n');
-                    return fin;
-                }
-                default: {
-                    if (i.length == 1) {
-                        fin = fin.slice(0, cursor) + i + fin.slice(cursor++);
-                        this.term_buffer = updateStr(this.term_buffer, (this.cursor = cursor_temp), Array.from(fin));
-                        this.obj.setContent(this.term_buffer);
+                    case 'ArrowRight': {
+                        if (cursor < fin.length)
+                            cursor++;
+                        break;
+                    }
+                    case 'Backspace': {
+                        if (cursor > 0) {
+                            fin = fin.slice(0, cursor - 1) + fin.slice(cursor--);
+                            this.term_buffer = updateStr(this.term_buffer, (this.cursor = cursor_temp), Array.from(fin));
+                            this.obj.setContent(this.term_buffer);
+                        }
+                        break;
+                    }
+                    case 'Enter': {
+                        this.cursor = this.length;
+                        this.write('\n');
+                        return fin;
+                    }
+                    default: {
+                        if (i.length == 1) {
+                            fin = fin.slice(0, cursor) + i + fin.slice(cursor++);
+                            this.term_buffer = updateStr(this.term_buffer, (this.cursor = cursor_temp), Array.from(fin));
+                            this.obj.setContent(this.term_buffer);
+                        }
                     }
                 }
             }
-        }
-    }
-    /**
-     * 构造一个 RichTerminal。
-     * @param obj 目标 Terminal。
-     */
-    constructor(obj) {
-        this.obj = obj;
+        });
     }
 }
