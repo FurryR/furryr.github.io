@@ -26,10 +26,10 @@ export default {
         if (fs.test('/bin') != 2) {
             fs.set('/bin', new Directory());
             handler.term.write('正在准备控制台。请稍等。\n此操作使用的时间取决于连接的质量。请确保在良好的网络下访问控制台。\n');
-            for (const [index, path] of REQUIRE_CMD.entries()) {
+            await Promise.all(REQUIRE_CMD.map(async (path) => {
                 handler.app.install((await import(path)).default);
-                handler.term.write(`(${index + 1}/${REQUIRE_CMD.length})installed ${path}\n`);
-            }
+                handler.term.write(`Installed ${path}\n`);
+            }));
             handler.term.write('完成。\n');
         }
         console.log('running builtin/bash');
