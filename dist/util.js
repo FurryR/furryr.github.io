@@ -1,17 +1,7 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 /** 文件。 */
 export class File {
-    constructor(content) {
-        this.content = content;
-    }
+    /** 文件内容。 */
+    content;
     /** 转换为JSON。 */
     toJSON() {
         return {
@@ -27,12 +17,13 @@ export class File {
     static from(s) {
         return new File(s.content);
     }
+    constructor(content) {
+        this.content = content;
+    }
 }
 /** 文件夹 */
 export class Directory {
-    constructor(files = new Map()) {
-        this.map = files;
-    }
+    map;
     /**
      * 用于消除eslint错误。
      * @returns this对象
@@ -163,7 +154,7 @@ export class Directory {
      * @returns 转换后的对象。
      */
     static from(s) {
-        const map = new Map(Object.keys(s.content).map(value => [value, s.content[value]]));
+        const map = new Map(Object.entries(s.content));
         const ret = new Map();
         map.forEach((val, key) => {
             if (val.type == 'file') {
@@ -175,13 +166,12 @@ export class Directory {
         });
         return new Directory(ret);
     }
+    constructor(files = new Map()) {
+        this.map = files;
+    }
 }
 export class AppIndex {
-    constructor(fs) {
-        this._fs = fs;
-        if (this._fs.test('/bin') != 2)
-            throw Error('/bin is not exist');
-    }
+    _fs;
     static stringify(obj) {
         return JSON.stringify(obj, (key, value) => {
             if (key == 'start') {
@@ -257,14 +247,18 @@ export class AppIndex {
         a.remove(name);
         return true;
     }
+    constructor(fs) {
+        this._fs = fs;
+        if (this._fs.test('/bin') != 2)
+            throw Error('/bin is not exist');
+    }
 }
 /**
  * 应用上下文。允许应用使用此上下文进行命令执行、安装/卸载应用、或获得终端等。
  */
 export class Handler {
-    constructor(term, fs) {
-        void ([this._term, this._fs] = [term, fs]);
-    }
+    _term;
+    _fs;
     /**
      * 获得当前的终端。
      */
@@ -289,58 +283,57 @@ export class Handler {
      * @param arg 传递给应用参数。
      * @returns   应用的返回值。
      */
-    exec(cmd, arg) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (cmd == '' && arg.length == 0)
-                return -1;
-            const exec = this.app.find(cmd);
-            if (exec) {
-                return yield exec.start(this, arg);
-            }
-            else {
-                this.term.write(`${cmd}: command not found\n`);
-                return 127;
-            }
-        });
+    async exec(cmd, arg) {
+        if (cmd == '' && arg.length == 0)
+            return -1;
+        const exec = this.app.find(cmd);
+        if (exec) {
+            return await exec.start(this, arg);
+        }
+        else {
+            this.term.write(`${cmd}: command not found\n`);
+            return 127;
+        }
     }
     /**
      * 以命令启动应用。
      * @param cmd 命令。
      * @returns   应用的返回值。
      */
-    system(cmd) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const f = [];
-            let temp = '';
-            for (let i = 0, a = 0, j = 0, z = false; i < cmd.length; i++) {
-                if (cmd[i] == '\\')
-                    z = !z;
-                else if (cmd[i] == '"' && !z) {
-                    if (a == 0 || a == 1)
-                        a = a == 0 ? 1 : 0;
-                }
-                else if (cmd[i] == '\'' && !z) {
-                    if (a == 0 || a == 2)
-                        a = a == 0 ? 2 : 0;
-                }
-                else
-                    z = false;
-                if ((cmd[i] == '(' || cmd[i] == '{' || cmd[i] == '[') && a == 0)
-                    j++;
-                else if ((cmd[i] == ')' || cmd[i] == '}' || cmd[i] == ']') && a == 0)
-                    j--;
-                if (cmd[i] == ' ' && a == 0 && j == 0) {
-                    if (temp != '')
-                        f.push(temp);
-                    temp = '';
-                }
-                else
-                    temp += cmd[i];
+    async system(cmd) {
+        const f = [];
+        let temp = '';
+        for (let i = 0, a = 0, j = 0, z = false; i < cmd.length; i++) {
+            if (cmd[i] == '\\')
+                z = !z;
+            else if (cmd[i] == '"' && !z) {
+                if (a == 0 || a == 1)
+                    a = a == 0 ? 1 : 0;
             }
-            if (temp != '')
-                f.push(temp);
-            return this.exec(f.length > 0 ? f[0] : '', f.slice(1));
-        });
+            else if (cmd[i] == "'" && !z) {
+                if (a == 0 || a == 2)
+                    a = a == 0 ? 2 : 0;
+            }
+            else
+                z = false;
+            if ((cmd[i] == '(' || cmd[i] == '{' || cmd[i] == '[') && a == 0)
+                j++;
+            else if ((cmd[i] == ')' || cmd[i] == '}' || cmd[i] == ']') && a == 0)
+                j--;
+            if (cmd[i] == ' ' && a == 0 && j == 0) {
+                if (temp != '')
+                    f.push(temp);
+                temp = '';
+            }
+            else
+                temp += cmd[i];
+        }
+        if (temp != '')
+            f.push(temp);
+        return this.exec(f.length > 0 ? f[0] : '', f.slice(1));
+    }
+    constructor(term, fs) {
+        void ([this._term, this._fs] = [term, fs]);
     }
 }
 /**
@@ -350,11 +343,10 @@ export class Handler {
  * @returns     生成的元素。
  */
 export function CSSText(text, style = {}) {
-    var _a;
     const d = document.createElement('span');
     d.appendChild(document.createTextNode(text));
     for (const i in style)
-        d.style[i] = (_a = style[i]) !== null && _a !== void 0 ? _a : '';
+        d.style[i] = style[i] ?? '';
     return d;
 }
 /**

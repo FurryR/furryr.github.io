@@ -1,20 +1,10 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 export default {
     name: 'blog',
     version: '1.0.1',
     desc: '访问凌的博客',
     url: '/dist/builtin/blog.js',
-    start: (handler, args) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
-        const { File, Link } = yield import('../../src/util.js');
+    start: async (handler, args) => {
+        const { File, Link } = await import('../../src/util.js');
         if (handler.fs.test('/tmp/blog_friendlist') != 1) {
             handler.fs.set('/tmp/blog_friendlist', new File('[]'));
         }
@@ -32,9 +22,9 @@ export default {
             if (PAGE_LIST.length == 0) {
                 handler.term.write(`(1/${jobs})blog 正在读取页面列表。`);
                 try {
-                    const t = yield fetch('/blog/page.json');
+                    const t = await fetch('/blog/page.json');
                     if (t.ok) {
-                        const json = yield t.json();
+                        const json = await t.json();
                         PAGE_LIST = json;
                         handler.fs.set('/tmp/blog_pagelist', new File(JSON.stringify(json)));
                     }
@@ -52,9 +42,9 @@ export default {
             if (FRIEND_LIST.length == 0) {
                 handler.term.write(`(${jobs}/${jobs})blog 正在读取友链列表。`);
                 try {
-                    const t = yield fetch('/blog/friend.json');
+                    const t = await fetch('/blog/friend.json');
                     if (t.ok) {
-                        const json = yield t.json();
+                        const json = await t.json();
                         FRIEND_LIST = json;
                         handler.fs.set('/tmp/blog_friendlist', new File(JSON.stringify(json)));
                     }
@@ -73,7 +63,7 @@ export default {
         }
         if (args[0] != 'moo')
             moo_count = 0;
-        switch ((_a = args[0]) !== null && _a !== void 0 ? _a : 'help') {
+        switch (args[0] ?? 'help') {
             case 'help': {
                 handler.term.write('blog [COMMAND] [OPTIONS]...\n');
                 handler.term.write('访问凌的博客。\n');
@@ -155,10 +145,10 @@ export default {
             }
             case 'about': {
                 try {
-                    const val = yield fetch('/blog/about.json');
+                    const val = await fetch('/blog/about.json');
                     if (val.ok) {
                         const s = document.createElement('div');
-                        s.innerHTML = (yield val.json());
+                        s.innerHTML = (await val.json());
                         handler.term.write(s);
                         return 0;
                     }
@@ -178,13 +168,13 @@ export default {
                         return 1;
                     }
                     try {
-                        const val = yield fetch(`blog/pages/${i}.json`);
+                        const val = await fetch(`blog/pages/${i}.json`);
                         if (val.ok) {
                             handler.term.write(`标题：${PAGE_LIST[i].title}\n`);
                             handler.term.write(`作者：${PAGE_LIST[i].author} 作于 ${new Date(PAGE_LIST[i].date).toUTCString()}\n`);
                             handler.term.write('正文：\n');
                             const s = document.createElement('div');
-                            s.innerHTML = (yield val.json());
+                            s.innerHTML = (await val.json());
                             handler.term.write(s);
                             return 0;
                         }
@@ -224,5 +214,5 @@ export default {
                 return 1;
             }
         }
-    })
+    }
 };

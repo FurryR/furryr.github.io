@@ -14,5 +14,6 @@ export default {
     /** 更多内容请参见cli-web(https://github.com/FurryR/cli-web)和util.ts。对于类型，请使用静态import（Typescript限定），但对于值，请使用函数内dynamic import。 */
     handler.term.write('Hello World!\n')
     handler.term.write(`Specified argument(s): ${args.join()}\n`)
+    return 0
   }
 }

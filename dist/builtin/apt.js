@@ -1,19 +1,10 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 export default {
     name: 'apt',
     version: '1.0.1',
     desc: '内嵌应用管理工具',
     url: '/dist/builtin/apt.js',
-    start: (handler, args) => __awaiter(void 0, void 0, void 0, function* () {
-        const { Link, CSSText } = yield import('../../src/util.js');
+    start: async (handler, args) => {
+        const { Link, CSSText } = await import('../../src/util.js');
         if (args.length < 1 || args[0] == '--help') {
             handler.term.write('内嵌应用管理器 apt 1.0.1\n');
             handler.term.write('使用：apt command [options]\n');
@@ -64,7 +55,7 @@ export default {
                 for (const app of handler.app.list()) {
                     handler.term.write('正在更新应用 ', Link(app.name, app.url), '...\n');
                     try {
-                        const newapp = (yield import(app.url)).default;
+                        const newapp = (await import(app.url)).default;
                         handler.term.write('正在覆盖 ', Link(newapp.name, newapp.url), ` ${app.version} -> ${newapp.version}\n`);
                         handler.app.install(newapp);
                     }
@@ -101,7 +92,7 @@ export default {
                 else {
                     handler.term.write('正在更新应用 ', Link(app.name, app.url), '...\n');
                     try {
-                        const newapp = (yield import(app.url)).default;
+                        const newapp = (await import(app.url)).default;
                         handler.term.write('正在覆盖 ', Link(newapp.name, newapp.url), ` ${app.version} -> ${newapp.version}\n`);
                         handler.app.install(newapp);
                         handler.term.write('安装完成。\n');
@@ -139,7 +130,7 @@ export default {
                 }
                 handler.term.write('正在从 ', Link(args[1], args[1]), ' 取得应用...\n');
                 try {
-                    const app = (yield import(args[1])).default;
+                    const app = (await import(args[1])).default;
                     handler.term.write('正在安装 ', Link(app.name, app.url), `(${app.version})...\n`);
                     handler.app.install(app);
                     handler.term.write('安装完成。\n');
@@ -217,5 +208,5 @@ export default {
                 return 1;
             }
         }
-    })
+    }
 };
