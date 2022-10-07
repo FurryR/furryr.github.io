@@ -325,7 +325,7 @@ export class Handler {
       if (cmd[i] == '\\') z = !z
       else if (cmd[i] == '"' && !z) {
         if (a == 0 || a == 1) a = a == 0 ? 1 : 0
-      } else if (cmd[i] == "'" && !z) {
+      } else if (cmd[i] == '\'' && !z) {
         if (a == 0 || a == 2) a = a == 0 ? 2 : 0
       } else z = false
       if ((cmd[i] == '(' || cmd[i] == '{' || cmd[i] == '[') && a == 0) j++
