@@ -248,7 +248,7 @@ export class RichTerminal {
                     return fin;
                 }
                 default: {
-                    if (i.length == 1) {
+                    if (!!i && i.length == 1) {
                         fin = fin.slice(0, cursor) + i + fin.slice(cursor++);
                         this.term_buffer = updateStr(this.term_buffer, (this.cursor = cursor_temp), Array.from(fin));
                         this.obj.setContent(this.term_buffer);

@@ -6,19 +6,19 @@ export default {
   desc: '控制台初始化',
   start: async (term: Terminal, fs: Directory): Promise<void> => {
     const REQUIRE_CMD = [
-      '/dist/builtin/apt.js',
-      '/dist/builtin/bash.js',
-      '/dist/builtin/blog.js',
-      '/dist/builtin/clear.js',
-      '/dist/builtin/date.js',
-      '/dist/builtin/echo.js',
-      '/dist/builtin/exit.js',
-      '/dist/builtin/help.js',
-      '/dist/builtin/ls.js',
-      '/dist/builtin/cat.js',
-      '/dist/builtin/mkdir.js',
-      '/dist/builtin/rm.js',
-      '/dist/builtin/touch.js'
+      '../dist/builtin/apt.js',
+      '../dist/builtin/bash.js',
+      '../dist/builtin/blog.js',
+      '../dist/builtin/clear.js',
+      '../dist/builtin/date.js',
+      '../dist/builtin/echo.js',
+      '../dist/builtin/exit.js',
+      '../dist/builtin/help.js',
+      '../dist/builtin/ls.js',
+      '../dist/builtin/cat.js',
+      '../dist/builtin/mkdir.js',
+      '../dist/builtin/rm.js',
+      '../dist/builtin/touch.js'
     ]
     console.log('init start')
     const handler = new Handler(new RichTerminal(term), fs)
