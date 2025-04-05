@@ -29,35 +29,38 @@ export class BlogScene extends Scene {
    *
    * @param {HTMLDivElement} main
    * @param {HTMLDivElement} sidebar
-   * @param {HTMLElement} article
    * @param {*} configuration
    */
-  constructor(main, sidebar, article, configuration) {
+  constructor(main, sidebar, configuration) {
     super(main, sidebar)
     this.configuration = configuration
-    this.article = article
     this._disposeFn = null
   }
 
-  static async transition(Animations, src, main, sidebar) {
-    await Scene.Transitions.loading(Animations, src, main, sidebar)
-  }
-
-  async new(Animations) {
-    const article = this.article.cloneNode(true)
+  async new(Animations, fromScene) {
+    if (fromScene) {
+      await Scene.Transitions.loading(
+        Animations,
+        fromScene,
+        this.main,
+        this.sidebar
+      )
+    }
+    const configuration = await this.configuration
+    const article = configuration.article.cloneNode(true)
     const dependency = import('/static/js/component/utterances.js')
     const catalog = generateCatalog(article)
     const author =
-      this.configuration.author.length > 1
+      configuration.author.length > 1
         ? Elements.span([
-            Elements.span().content(this.configuration.author[0]),
+            Elements.span().content(configuration.author[0]),
             Elements.span().content('等').class('blog-post-author-etc')
           ])
             .class('blog-post-author')
-            .with('title', this.configuration.author.join('、'))
+            .with('title', configuration.author.join('、'))
             .hide()
         : Elements.span()
-            .content(this.configuration.author[0])
+            .content(configuration.author[0])
             .class('blog-post-author')
             .hide()
     let title, time, category, tag
@@ -65,20 +68,20 @@ export class BlogScene extends Scene {
     const splitElementAnimation = withResolvers()
     const metadata = Elements.div([
       (title = Elements.h1()
-        .content(this.configuration.title)
+        .content(configuration.title)
         .class('blog-post-title')
         .hide()),
       author,
       (time = Elements.span()
-        .content(this.configuration.time.toISOString())
+        .content(configuration.time.toISOString())
         .class('blog-post-time')
         .hide()),
       (category = Elements.span()
-        .content(this.configuration.category)
+        .content(configuration.category)
         .class('blog-post-category')
         .hide()),
       (tag = Elements.span()
-        .content(this.configuration.tags.join(' '))
+        .content(configuration.tags.join(' '))
         .class('blog-post-tag')
         .hide())
     ]).class('blog-post-metadata')
@@ -203,7 +206,6 @@ export class BlogScene extends Scene {
   }
 
   async dispose(Animations) {
-    // TODO: 将方法通用化
     if (this._disposeFn) {
       this._disposeFn()
     }
@@ -212,22 +214,23 @@ export class BlogScene extends Scene {
 }
 
 export default function (dom) {
-  const blog = dom.querySelector('blog')
-  const title = dom.title
-  const author = JSON.parse(blog.querySelector('author').textContent)
-  const time = new Date(blog.querySelector('time').textContent)
-  const category = blog.querySelector('category').textContent
-  const tags = JSON.parse(blog.querySelector('tag').textContent)
-  const article = dom.querySelector('article')
-  article.remove()
-  return (main, sidebar) => {
-    const cached = {
-      title,
-      author,
-      time,
-      category,
-      tags
+  const cached = dom.then(dom => {
+    const blog = dom.querySelector('blog')
+    const article = dom.querySelector('article')
+    article.remove()
+    return {
+      title: dom.title,
+      author: blog
+        .querySelector('author')
+        .textContent.split(',')
+        .map(v => v.trim()),
+      time: new Date(blog.querySelector('time').textContent),
+      category: blog.querySelector('category').textContent,
+      tags: blog.querySelector('tag').textContent.split(' '),
+      article
     }
-    return new BlogScene(main, sidebar, article, cached)
+  })
+  return (main, sidebar) => {
+    return new BlogScene(main, sidebar, cached)
   }
 }

@@ -1,6 +1,11 @@
 import { scope } from '/static/js/util/animation.js'
 
 export class Route {
+  /** @type {Map<RegExp, any>} */
+  static Routes = new Map([
+    [/^\/(?:index.html)?$/, () => import('/static/js/scene/main.js')],
+    [/^\/posts\/.*\.html$/, () => import('/static/js/scene/blog.js')]
+  ])
   static instance = null
   constructor(firstSceneFn, firstScene) {
     this.scenes = [firstSceneFn]
@@ -24,8 +29,7 @@ export class Route {
       await this.currentAnimation.promise
     }
     this.currentAnimation = scope(async Animations => {
-      await dest.constructor.transition(Animations, src, src.main, src.sidebar)
-      await dest.new(Animations)
+      await dest.new(Animations, src)
       this.currentAnimation = null
     })
     await this.currentAnimation.promise
@@ -40,57 +44,30 @@ export class Route {
       await this.currentAnimation.promise
     }
     this.currentAnimation = scope(async Animations => {
-      await dest.constructor.transition(Animations, src, src.main, src.sidebar)
-      await dest.new(Animations)
+      await dest.new(Animations, src)
       this.currentAnimation = null
     })
     await this.currentAnimation.promise
   }
-  static async parse(dom) {
-    const blog = dom.querySelector('blog')
-    if (!blog) {
-      // Panic.
-      throw new Error('Unable to find blog metadata. Aborting.')
+  static async parse(domPromise, url) {
+    for (const [k, v] of Route.Routes.entries()) {
+      if (k.test(url)) {
+        const fn = await v()
+        return fn.default(domPromise)
+      }
     }
-    const route = blog.querySelector('route')?.textContent ?? 'default'
-    const sceneFn = (await import(`/static/js/scene/${route}.js`)).default(dom)
-    blog.remove()
-    return sceneFn
-    // if (!route) {
-    //   const title = dom.title
-    //   const author = JSON.parse(blog.querySelector('author').textContent)
-    //   const time = new Date(blog.querySelector('time').textContent)
-    //   const category = blog.querySelector('category').textContent
-    //   const tags = JSON.parse(blog.querySelector('tag').textContent)
-    //   blog.remove()
-    //   const article = dom.querySelector('article')
-    //   article.remove()
-    //   return (main, sidebar) => {
-    //     return new BlogScene(main, sidebar, article, {
-    //       title,
-    //       author,
-    //       time,
-    //       category,
-    //       tags
-    //     })
-    //   }
-    // } else {
-    //   // TODO: index
-    //   const r = route.textContent
-    //   blog.remove()
-    //   if (!Route.routes[r]) throw new Error('Route not found')
-    //   return Route.routes[r](dom)
-    // }
+    throw new Error('No matching route found')
   }
   static async parseURL(url) {
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
-    }
-    const text = await response.text()
-    const dom = new DOMParser().parseFromString(text, 'text/html')
-    const scene = await Route.parse(dom)
-    return scene
+    return this.parse(
+      fetch(url)
+        .then(req => req.text())
+        .then(text => {
+          const dom = new DOMParser().parseFromString(text, 'text/html')
+          return dom
+        }),
+      url
+    )
   }
   async handleURL(url) {
     window.history.pushState({ position: this.scenes.length }, '', url)
@@ -109,13 +86,7 @@ export class Route {
         await this.currentAnimation.promise
       }
       this.currentAnimation = scope(async Animations => {
-        await dest.constructor.transition(
-          Animations,
-          src,
-          src.main,
-          src.sidebar
-        )
-        await dest.new(Animations)
+        await dest.new(Animations, src)
         this.currentAnimation = null
       })
       await this.currentAnimation.promise

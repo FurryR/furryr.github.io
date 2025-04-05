@@ -13,8 +13,9 @@ function addStyle(url) {
   link.rel = 'stylesheet'
   link.href = url
   document.head.appendChild(link)
-  return new Promise(resolve => {
-    link.addEventListener('load', () => resolve())
+  return new Promise((resolve, reject) => {
+    link.addEventListener('load', ev => resolve(ev))
+    link.addEventListener('error', ev => reject(ev))
   })
 }
 
@@ -90,7 +91,6 @@ async function initalizeHeader() {
 }
 async function initalizeMain() {
   return scope(async Animations => {
-    await Animations.wait(400)
     let content, mainContainer, barContainer
     let github, discord, telegram, twitter
     const main = Elements.main([
@@ -146,6 +146,7 @@ async function initalizeMain() {
         .hide())
     ])
     document.body.appendChild(main.element)
+    await Animations.wait(400)
     content.show()
     await Animations.animate(
       content,
@@ -173,71 +174,85 @@ async function initalizeMain() {
       await Animations.fadein(telegram, 200)
       await Animations.fadein(twitter, 200)
     })()
-    console.log('Main loading finished')
     return [mainContainer.element, barContainer.element]
   }).promise
 }
-async function initalizeFooter() {
+async function initalizeFooter(contentPromise) {
   return scope(async Animations => {
-    let copyright
-    const footer = Elements.footer([
-      (copyright = Elements.p()
-        .content('© 2025 熊谷 凌. All rights reserved.')
-        .hide())
-    ]).class('blog-footer')
+    const footer = Elements.footer([])
+      .content('© 2025 熊谷 凌. All rights reserved.')
+      .class('blog-footer')
+      .hide()
     document.body.appendChild(footer.element)
-    await Animations.fadein(copyright, 200)
-    console.log('Footer loading finished')
+    await contentPromise
+    await Animations.fadein(footer, 200)
   }).promise
 }
 
-// window.Scene = Scene /** For debug purposes */
-// window.Route = Route /** For debug purposes */
+window.Route = Route /** For debug purposes */
 
 ;(async () => {
+  // Preload all scenes parallelly
+  for (const v of Route.Routes.values()) v()
+
   // Entry
   await scope(async Animations => {
-    let firstScene
+    const cloned = document.cloneNode(true)
+    while (document.body.firstChild)
+      document.body.removeChild(document.body.firstChild)
+    let usedTime = performance.now()
     try {
-      firstScene = await Route.parse(document)
+      await addStyle('/static/css/main.css')
     } catch (e) {
-      setTimeout(() => {
-        const style = document.createElement('style')
-        style.textContent = `
-body::after {
-  animation: flash-dots-failure 1.2s forwards;
-}
-`
-        document.head.appendChild(style)
-      }, 1000)
+      document.body.className = 'loading-failure'
       throw e
     }
-    Route.instance = new Route(firstScene, null)
-    let usedTime = performance.now()
-    await addStyle('/static/css/main.css')
     usedTime = performance.now() - usedTime
     if (usedTime < 2000) {
       await Animations.wait(Math.floor(2000 - usedTime))
     }
     await Animations.fadeout(new AnimationElement(document.body), 200)
-    document.querySelector('link[blog-preload]').remove()
+    document.querySelector('link[blog-preload]')?.remove()
+    const headerPromise = initalizeHeader()
+    const mainPromise = initalizeMain()
+    const footerPromise = initalizeFooter(
+      Promise.all([headerPromise, mainPromise])
+    )
     const [, containers] = await Promise.all([
-      initalizeHeader(),
-      initalizeMain()
+      headerPromise,
+      mainPromise,
+      footerPromise
     ])
-    await initalizeFooter()
-    await Animations.wait(1000)
+    let firstScene
+    try {
+      firstScene = await Route.parse(
+        Promise.resolve(cloned),
+        window.location.pathname
+      )
+    } catch (e) {
+      setTimeout(() => {
+        for (const container of containers) {
+          container.querySelector('.loading-icon').className =
+            'loading-icon-failure'
+        }
+      }, 1000)
+      throw e
+    }
+    Route.instance = new Route(firstScene, null)
     const main = containers[0]
     const sidebar = containers[1]
     Route.instance.current = firstScene(main, sidebar)
     window.addEventListener('popstate', ev => {
       const position = ev.state?.position
       if (ev.state && position >= Route.instance.position) {
-        Route.instance.handleForward(location.href, position)
+        Route.instance.handleForward(location.pathname, position)
       } else if (!ev.state || position < Route.instance.position) {
         Route.instance.pop()
       }
     })
-    await Route.instance.current.new(Animations)
+    window.addEventListener('unload', () => {
+      window.history.replaceState(null, '', location.href)
+    })
+    await Route.instance.current.new(Animations, null)
   }).promise
 })()

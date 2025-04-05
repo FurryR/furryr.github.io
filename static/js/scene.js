@@ -60,11 +60,7 @@ export class Scene {
     this.sidebar = sidebar
   }
 
-  static async transition(scope, src, main, sidebar) {
-    throw new Error('Not implemented')
-  }
-
-  async new(scope) {
+  async new(scope, fromScene) {
     throw new Error('Not implemented')
   }
   async dispose(scope) {

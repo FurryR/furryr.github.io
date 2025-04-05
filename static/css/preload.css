@@ -11,10 +11,7 @@ body {
   height: 0px;
 }
 
-article,
-blog,
-sidebar,
-main {
+body > * {
   display: none;
 }
 
@@ -29,6 +26,10 @@ body::after {
   box-shadow: 15px 0 0 0 rgba(0, 0, 0, 0.2), 30px 0 0 0 rgba(0, 0, 0, 0.2),
     45px 0 0 0 rgba(0, 0, 0, 0.2), 60px 0 0 0 rgba(0, 0, 0, 0.2);
   animation: flash-dots 1.2s infinite;
+}
+
+.loading-failure::after {
+  animation: flash-dots-failure 1.2s forwards;
 }
 
 @keyframes flash-dots {
@@ -65,19 +66,20 @@ body::after {
     box-shadow: 15px 0 0 0 rgba(0, 0, 0, 0.2), 30px 0 0 0 rgba(0, 0, 0, 0.2),
       45px 0 0 0 rgba(0, 0, 0, 0.2), 60px 0 0 0 rgba(0, 0, 0, 0.2);
   }
-  25% {
-    box-shadow: 15px 0 0 0 red, 30px 0 0 0 rgba(0, 0, 0, 0.2),
+  18% {
+    box-shadow: 15px 0 0 0 #c21c2c, 30px 0 0 0 rgba(0, 0, 0, 0.2),
       45px 0 0 0 rgba(0, 0, 0, 0.2), 60px 0 0 0 rgba(0, 0, 0, 0.2);
   }
-  50% {
-    box-shadow: 15px 0 0 0 red, 30px 0 0 0 red, 45px 0 0 0 rgba(0, 0, 0, 0.2),
-      60px 0 0 0 rgba(0, 0, 0, 0.2);
+  42% {
+    box-shadow: 15px 0 0 0 #c21c2c, 30px 0 0 0 #c21c2c,
+      45px 0 0 0 rgba(0, 0, 0, 0.2), 60px 0 0 0 rgba(0, 0, 0, 0.2);
   }
-  75% {
-    box-shadow: 15px 0 0 0 red, 30px 0 0 0 red, 45px 0 0 0 red,
+  54% {
+    box-shadow: 15px 0 0 0 #c21c2c, 30px 0 0 0 #c21c2c, 45px 0 0 0 #c21c2c,
       60px 0 0 0 rgba(0, 0, 0, 0.2);
   }
   100% {
-    box-shadow: 15px 0 0 0 red, 30px 0 0 0 red, 45px 0 0 0 red, 60px 0 0 0 red;
+    box-shadow: 15px 0 0 0 #c21c2c, 30px 0 0 0 #c21c2c, 45px 0 0 0 #c21c2c,
+      60px 0 0 0 #c21c2c;
   }
 }

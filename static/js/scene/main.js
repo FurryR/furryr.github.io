@@ -9,13 +9,18 @@ export class MainScene extends Scene {
     this.configuration = configuration
   }
 
-  static async transition(Animations, src, main, sidebar) {
-    await Scene.Transitions.loading(Animations, src, main, sidebar)
-  }
-
-  async new(Animations) {
-    const mainContent = this.configuration.mainContent.cloneNode(true)
-    const sideContent = this.configuration.sideContent.cloneNode(true)
+  async new(Animations, fromScene) {
+    if (fromScene) {
+      await Scene.Transitions.loading(
+        Animations,
+        fromScene,
+        this.main,
+        this.sidebar
+      )
+    }
+    const configuration = await this.configuration
+    const mainContent = configuration.mainContent.cloneNode(true)
+    const sideContent = configuration.sideContent.cloneNode(true)
     // 只添加子元素
     const mainLoadingIcon = new AnimationElement(
       this.main.querySelector('.loading-icon')
@@ -49,14 +54,16 @@ export class MainScene extends Scene {
 }
 
 export default function (dom) {
-  const mainContent = dom.querySelector('main')
-  const sideContent = dom.querySelector('sidebar')
-  mainContent.remove()
-  sideContent.remove()
-  const cached = {
-    mainContent,
-    sideContent
-  }
+  const cached = dom.then(dom => {
+    const mainContent = dom.querySelector('main')
+    const sideContent = dom.querySelector('sidebar')
+    mainContent.remove()
+    sideContent.remove()
+    return {
+      mainContent,
+      sideContent
+    }
+  })
   return (main, sidebar) => {
     return new MainScene(main, sidebar, cached)
   }
