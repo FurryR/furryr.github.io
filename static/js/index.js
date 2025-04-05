@@ -86,7 +86,6 @@ async function initalizeHeader() {
     await Animations.fadein(friend, 150)
     await Animations.fadein(contact, 150)
     await Promise.all([home, archive, friend, contact].map(navPlay))
-    console.log('Header loading finished')
   }).promise
 }
 async function initalizeMain() {
