@@ -189,7 +189,6 @@ async function initalizeFooter(contentPromise) {
 }
 
 window.Route = Route /** For debug purposes */
-
 ;(async () => {
   // Preload all scenes parallelly
   for (const v of Route.Routes.values()) v()
@@ -199,16 +198,14 @@ window.Route = Route /** For debug purposes */
     const cloned = document.cloneNode(true)
     while (document.body.firstChild)
       document.body.removeChild(document.body.firstChild)
-    let usedTime = performance.now()
     try {
+      await addStyle(
+        'https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css'
+      )
       await addStyle('/static/css/main.css')
     } catch (e) {
       document.body.className = 'loading-failure'
       throw e
-    }
-    usedTime = performance.now() - usedTime
-    if (usedTime < 2000) {
-      await Animations.wait(Math.floor(2000 - usedTime))
     }
     await Animations.fadeout(new AnimationElement(document.body), 200)
     document.querySelector('link[blog-preload]')?.remove()

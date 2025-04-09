@@ -33,7 +33,7 @@ blog {
 }
 
 * {
-  font-family: Consolas, 'Courier New', system-ui;
+  font-family: 'Fira Code', Consolas, 'Courier New', system-ui;
 }
 
 article {

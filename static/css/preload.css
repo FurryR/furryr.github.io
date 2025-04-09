@@ -11,6 +11,7 @@ body {
   height: 0px;
 }
 
+blog,
 body > * {
   display: none;
 }
