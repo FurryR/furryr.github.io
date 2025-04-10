@@ -3,6 +3,7 @@ import { AnimationElement, Elements } from '/static/js/util/animation.js'
 import { withResolvers } from '/static/js/util/promise.js'
 
 import { Scene } from '/static/js/scene.js'
+import { Effect } from '/static/js/effect.js'
 
 /**
  *
@@ -34,7 +35,7 @@ export class BlogScene extends Scene {
   constructor(main, sidebar, configuration) {
     super(main, sidebar)
     this.configuration = configuration
-    this._disposeFn = null
+    this.effect = new Effect()
   }
 
   async new(Animations, fromScene) {
@@ -97,38 +98,44 @@ export class BlogScene extends Scene {
       .hide()
     this.main.appendChild(utterancesPlaceholder.element)
     const { default: Utterances } = await dependency
-    const utterances = Utterances({
-      repo: 'FurryR/furryr.github.io',
-      'issue-term': 'pathname',
-      theme: 'github-light'
-    })
-    utterances.element.style.visibility = 'hidden'
-    /** @type {AnimationElement<HTMLIFrameElement>} */
-    const iframe = new AnimationElement(
-      utterances.element.querySelector('iframe')
-    )
-    window.addEventListener('message', async function receiver(event) {
-      const utterancesOrigin = 'https://utteranc.es'
-      if (event.origin !== utterancesOrigin) {
-        return
-      }
-      const data = event.data
-      if (data && data.type === 'resize' && data.height) {
-        window.removeEventListener('message', receiver)
-        if (utterancesPlaceholder.element.style.visibility !== 'hidden') {
-          await Animations.fadeout(utterancesPlaceholder, 200)
+    this.effect.use(() => {
+      const utterances = Utterances({
+        repo: 'FurryR/furryr.github.io',
+        'issue-term': 'pathname',
+        theme: 'github-light'
+      })
+      utterances.element.style.visibility = 'hidden'
+      /** @type {AnimationElement<HTMLIFrameElement>} */
+      const iframe = new AnimationElement(
+        utterances.element.querySelector('iframe')
+      )
+      this.effect.use(() => {
+        const receiver = async event => {
+          const utterancesOrigin = 'https://utteranc.es'
+          if (event.origin !== utterancesOrigin) {
+            return
+          }
+          const data = event.data
+          if (data && data.type === 'resize' && data.height) {
+            window.removeEventListener('message', receiver)
+            if (utterancesPlaceholder.element.style.visibility !== 'hidden') {
+              await Animations.fadeout(utterancesPlaceholder, 200)
+            }
+            utterancesPlaceholder.element.remove()
+            await articleElementAnimation.promise
+            if (split.element.style.visibility === 'hidden')
+              await Animations.fadein(split, 200)
+            else await splitElementAnimation.promise
+            utterances.element.style.visibility = ''
+            await Animations.fadein(iframe, 200)
+          }
         }
-        utterancesPlaceholder.element.remove()
-        await articleElementAnimation.promise
-        if (split.element.style.visibility === 'hidden')
-          await Animations.fadein(split, 200)
-        else await splitElementAnimation.promise
-        utterances.element.style.visibility = ''
-        await Animations.fadein(iframe, 200)
-      }
+        window.addEventListener('message', receiver)
+        return () => window.removeEventListener('message', receiver)
+      })
+      this.main.appendChild(utterances.element)
+      return utterances.dispose
     })
-    this._disposeFn = utterances.dispose
-    this.main.appendChild(utterances.element)
     const mainLoadingIcon = new AnimationElement(
       this.main.querySelector('.loading-icon')
     )
@@ -206,9 +213,7 @@ export class BlogScene extends Scene {
   }
 
   async dispose(Animations) {
-    if (this._disposeFn) {
-      this._disposeFn()
-    }
+    this.effect.dispose()
     await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
   }
 }

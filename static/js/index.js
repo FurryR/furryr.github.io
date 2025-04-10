@@ -52,7 +52,7 @@ async function initalizeHeader() {
           .hide())
       ]).class('blog-title-container'),
       (hitokoto = Elements.span()
-        .content('控制。收容。保护。')
+        .content('大雨之后，是漫长的潮湿。')
         .class('blog-hitokoto')
         .hide()),
       Elements.nav([
@@ -196,6 +196,14 @@ window.Route = Route /** For debug purposes */
   // Entry
   await scope(async Animations => {
     const cloned = document.cloneNode(true)
+    window.history.replaceState(
+      {
+        url: window.location.pathname,
+        document: document.documentElement.outerHTML
+      },
+      '',
+      window.location.href
+    )
     while (document.body.firstChild)
       document.body.removeChild(document.body.firstChild)
     try {
@@ -234,20 +242,20 @@ window.Route = Route /** For debug purposes */
       }, 1000)
       throw e
     }
-    Route.instance = new Route(firstScene, null)
+    Route.instance = new Route(null)
     const main = containers[0]
     const sidebar = containers[1]
     Route.instance.current = firstScene(main, sidebar)
     window.addEventListener('popstate', ev => {
-      const position = ev.state?.position
-      if (ev.state && position >= Route.instance.position) {
-        Route.instance.handleForward(location.pathname, position)
-      } else if (!ev.state || position < Route.instance.position) {
-        Route.instance.pop()
+      const dom = ev.state?.document
+      if (dom) {
+        Route.instance.handleCache(
+          window.location.pathname,
+          new DOMParser().parseFromString(dom, 'text/html')
+        )
+      } else {
+        Route.instance.handleURL(window.location.pathname)
       }
-    })
-    window.addEventListener('unload', () => {
-      window.history.replaceState(null, '', location.href)
     })
     await Route.instance.current.new(Animations, null)
   }).promise

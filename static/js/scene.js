@@ -6,7 +6,6 @@ import { AnimationElement, Elements } from '/static/js/util/animation.js'
 export class Scene {
   static Transitions = {
     async loading(Animations, src, main, sidebar) {
-      // TODO: 将方法通用化
       if (src) await src.dispose(Animations)
       await Animations.wait(200)
       const mainLoadingIcon = Elements.div().class('loading-icon').hide()
