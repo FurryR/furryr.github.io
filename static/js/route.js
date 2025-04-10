@@ -38,14 +38,14 @@ export class Route {
   }
 
   async handleURL(url) {
-    window.history.pushState({ url, document: null }, '', url)
+    window.history.pushState({ document: null }, '', url)
     return this.to(
       await Route.parse(
         fetch(url)
           .then(req => req.text())
           .then(text => {
-            if (window.history.state?.url === url) {
-              window.history.replaceState({ url, document: text }, '', url)
+            if (window.location.pathname === url) {
+              window.history.replaceState({ document: text }, '', url)
             }
             const dom = new DOMParser().parseFromString(text, 'text/html')
             return dom
