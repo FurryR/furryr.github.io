@@ -7,6 +7,7 @@
 
 import { AnimationElement, Elements, scope } from '/static/js/util/animation.js'
 import { Route } from '/static/js/route.js'
+import { randomHitokoto } from '/static/js/hitokoto.js'
 
 function addStyle(url) {
   const link = document.createElement('link')
@@ -52,7 +53,7 @@ async function initalizeHeader() {
           .hide())
       ]).class('blog-title-container'),
       (hitokoto = Elements.span()
-        .content('大雨之后，是漫长的潮湿。')
+        .content(randomHitokoto())
         .class('blog-hitokoto')
         .hide()),
       Elements.nav([

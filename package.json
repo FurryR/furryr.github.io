@@ -1,0 +1,25 @@
+{
+  "name": "furryr.github.io",
+  "version": "1.0.0",
+  "description": "FurryR's personal blog (via vanilla Javascript).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"**/*.{js,json,css,html}\"",
+    "format:check": "prettier --check \"**/*.{js,json,css,html}\"",
+    "lint": "eslint ./static/js/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FurryR/furryr.github.io.git"
+  },
+  "author": "FurryR",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FurryR/furryr.github.io/issues"
+  },
+  "homepage": "https://github.com/FurryR/furryr.github.io#readme",
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}

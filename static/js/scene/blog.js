@@ -5,6 +5,148 @@ import { withResolvers } from '/static/js/util/promise.js'
 import { Scene } from '/static/js/scene.js'
 import { Effect } from '/static/js/effect.js'
 
+const css = `
+
+.blog-post-split {
+  border: none;
+  box-shadow: 0 1px 0 0 #333;
+  color: black;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
+}
+
+.blog-post-split::after {
+  background-color: white;
+  content: '§';
+  padding: 0 4px;
+  position: relative;
+  top: -3px;
+}
+
+.blog-post-metadata {
+  margin-bottom: 1.5em;
+}
+
+.blog-post-title {
+  font-size: 2em;
+}
+
+.blog-post-author,
+.blog-post-time,
+.blog-post-category,
+.blog-post-tag {
+  font-size: 0.8em;
+  color: gray;
+  margin: 0;
+  margin-right: 1em;
+  font-style: italic;
+}
+
+.blog-post-author-etc {
+  font-size: 0.5em;
+  margin-left: 5px;
+}
+
+.blog-post-author::before {
+  content: url('/static/res/icons/blog-author.svg');
+  position: relative;
+  top: 2px;
+  margin-right: 2px;
+  scale: 0.8;
+}
+.blog-post-time::before {
+  content: url('/static/res/icons/blog-time.svg');
+  position: relative;
+  top: 2px;
+  margin-right: 2px;
+  scale: 0.8;
+}
+.blog-post-category::before {
+  content: url('/static/res/icons/blog-category.svg');
+  position: relative;
+  top: 2px;
+  margin-right: 2px;
+  scale: 0.8;
+}
+.blog-post-tag::before {
+  content: url('/static/res/icons/blog-tag.svg');
+  position: relative;
+  top: 2px;
+  margin-right: 2px;
+  scale: 0.8;
+}
+
+/** Catalog */
+
+.blog-catalog-title {
+  font-size: 1.5em;
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
+  margin-bottom: 0.5em;
+}
+
+.blog-catalog-list {
+  list-style-type: none;
+  overflow-y: scroll;
+  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  height: 80%;
+  padding: 0;
+  margin: 0;
+}
+.blog-catalog-list::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for WebKit browsers */
+}
+
+.blog-catalog-item-h1 {
+  text-decoration: none;
+  margin: 0;
+  color: rgb(50, 50, 50);
+  transition: transform 0.25s ease-out;
+}
+
+.blog-catalog-item-h2 {
+  text-decoration: none;
+  margin-left: 10px;
+  color: rgb(125, 125, 125);
+}
+
+.blog-catalog-item-h3 {
+  text-decoration: none;
+  margin-left: 20px;
+  color: rgb(175, 175, 175);
+}
+
+/** For utterances */
+.utterances-placeholder {
+  position: relative;
+  margin-top: 2em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .utterances {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  .blog-post-split::after {
+    background-color: var(--blog-background);
+    color: white;
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+`
+
 /**
  *
  * @param {HTMLElement} element
@@ -39,6 +181,12 @@ export class BlogScene extends Scene {
   }
 
   async new(Animations, fromScene) {
+    this.effect.use(() => {
+      const style = document.createElement('style')
+      style.textContent = css
+      document.head.append(style)
+      return () => style.remove()
+    })
     if (fromScene) {
       await Scene.Transitions.loading(
         Animations,
@@ -102,7 +250,7 @@ export class BlogScene extends Scene {
       const utterances = Utterances({
         repo: 'FurryR/furryr.github.io',
         'issue-term': 'pathname',
-        theme: 'github-light'
+        theme: 'preferred-color-scheme'
       })
       utterances.element.style.visibility = 'hidden'
       /** @type {AnimationElement<HTMLIFrameElement>} */
