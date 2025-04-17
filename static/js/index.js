@@ -76,6 +76,7 @@ async function initalizeHeader() {
     home.element.addEventListener('click', ev =>
       Route.instance.handleAnchor(ev)
     )
+    // TODO: search bar
     document.body.appendChild(header.element)
     await Animations.fadein(title, 400)
     await Animations.fadein(subtitle, 400)

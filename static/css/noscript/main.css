@@ -19,6 +19,10 @@ body {
     background-color: rgb(24, 24, 24);
     color: black;
   }
+  img,
+  video {
+    filter: invert(1) hue-rotate(180deg);
+  }
 }
 
 @media (max-width: 1000px) {

@@ -46,6 +46,7 @@ export class MainScene extends Scene {
     await Animations.fadeout(mainLoadingIcon, 200)
     mainLoadingIcon.element.remove()
     if (!fromScene) {
+      // TODO: 修复切换场景过快时 new 未完成的问题
       let introTitle
       const introContainer = Elements.div([
         (introTitle = Elements.h1().content('In memory of')),
@@ -86,8 +87,8 @@ export class MainScene extends Scene {
   }
 
   async dispose(Animations) {
-    this.effect.dispose()
     await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
+    this.effect.dispose()
   }
 }
 

@@ -361,8 +361,8 @@ export class BlogScene extends Scene {
   }
 
   async dispose(Animations) {
-    this.effect.dispose()
     await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
+    this.effect.dispose()
   }
 }
 

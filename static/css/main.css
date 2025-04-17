@@ -16,6 +16,10 @@ body {
     background-color: var(--blog-background);
     color: black;
   }
+  img,
+  video {
+    filter: invert(1) hue-rotate(180deg);
+  }
 }
 
 @media (max-width: 1000px) {
