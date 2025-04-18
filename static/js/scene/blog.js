@@ -195,7 +195,12 @@ export class BlogScene extends Scene {
         this.sidebar
       )
     }
-    const configuration = await this.configuration
+    let configuration
+    try {
+      configuration = await this.configuration
+    } catch {
+      return
+    }
     const article = configuration.article.cloneNode(true)
     const dependency = import('/static/js/component/utterances.js')
     const catalog = generateCatalog(article)

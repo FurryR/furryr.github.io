@@ -1,3 +1,4 @@
+import { withResolvers } from '/static/js/util/promise.js'
 import { scope } from '/static/js/util/animation.js'
 
 export class Route {
@@ -10,18 +11,22 @@ export class Route {
   constructor(firstScene) {
     this.current = firstScene
     this.currentAnimation = null
+    this.currentRequest = null
     this.handlingAnchor = false
   }
-  async to(sceneFn) {
+  async to(sceneFn, previousRequest) {
     const src = this.current
     const dest = sceneFn(src.main, src.sidebar)
     this.current = dest
+    if (previousRequest) {
+      previousRequest.reject(new Error('Cancelled'))
+    }
     if (this.currentAnimation) {
       this.currentAnimation.skip()
       await this.currentAnimation.promise
     }
     this.currentAnimation = scope(async Animations => {
-      await dest.new(Animations, src)
+      await dest.new(Animations, src.dummy ? null : src)
       this.currentAnimation = null
     })
     await this.currentAnimation.promise
@@ -39,24 +44,35 @@ export class Route {
 
   async handleURL(url) {
     window.history.pushState({ document: null }, '', url)
+    const previousRequest = this.currentRequest
+    const currentRequest = (this.currentRequest = withResolvers())
+    fetch(url)
+      .then(req => req.text())
+      .then(text => {
+        if (window.location.pathname === url) {
+          window.history.replaceState({ document: text }, '', url)
+        }
+        const dom = new DOMParser().parseFromString(text, 'text/html')
+        if (this.currentRequest === currentRequest) {
+          this.currentRequest = null
+        }
+        currentRequest.resolve(dom)
+      })
     return this.to(
-      await Route.parse(
-        fetch(url)
-          .then(req => req.text())
-          .then(text => {
-            if (window.location.pathname === url) {
-              window.history.replaceState({ document: text }, '', url)
-            }
-            const dom = new DOMParser().parseFromString(text, 'text/html')
-            return dom
-          }),
-        url
-      )
+      await Route.parse(currentRequest.promise, url),
+      previousRequest
     )
   }
 
   async handleCache(url, dom) {
-    if (dom) return this.to(await Route.parse(Promise.resolve(dom), url))
+    if (dom) {
+      const currentRequest = this.currentRequest
+      this.currentRequest = null
+      return this.to(
+        await Route.parse(Promise.resolve(dom), url),
+        currentRequest
+      )
+    }
     return this.handleURL(url)
   }
 

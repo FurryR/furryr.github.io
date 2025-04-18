@@ -235,8 +235,10 @@ export function scope(fn) {
     return new Promise(resolve => {
       runningAnimations.push(resolve)
       setTimeout(() => {
-        runningAnimations = runningAnimations.filter(a => a !== resolve)
-        resolve()
+        if (!skipped) {
+          runningAnimations = runningAnimations.filter(a => a !== resolve)
+          resolve()
+        }
       }, ms)
     })
   }

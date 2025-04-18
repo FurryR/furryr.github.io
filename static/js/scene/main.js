@@ -36,7 +36,12 @@ export class MainScene extends Scene {
         this.sidebar
       )
     }
-    const configuration = await this.configuration
+    let configuration
+    try {
+      configuration = await this.configuration
+    } catch {
+      return
+    }
     const mainContent = configuration.mainContent.cloneNode(true)
     const sideContent = configuration.sideContent.cloneNode(true)
     // 只添加子元素
@@ -46,7 +51,6 @@ export class MainScene extends Scene {
     await Animations.fadeout(mainLoadingIcon, 200)
     mainLoadingIcon.element.remove()
     if (!fromScene) {
-      // TODO: 修复切换场景过快时 new 未完成的问题
       let introTitle
       const introContainer = Elements.div([
         (introTitle = Elements.h1().content('In memory of')),
