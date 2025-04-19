@@ -25,11 +25,10 @@ export class Route {
       currentAnimation.skip()
       await currentAnimation.promise
     }
-    if (this.currentAnimation === currentAnimation)
-      this.currentAnimation = scope(async Animations => {
-        await dest.new(Animations, src)
-        this.currentAnimation = null
-      })
+    this.currentAnimation = scope(async Animations => {
+      await dest.new(Animations, src)
+      this.currentAnimation = null
+    })
     await this.currentAnimation.promise
   }
 
