@@ -246,16 +246,6 @@ async function initalizeFooter(contentPromise) {
 
 window.Route = Route /** For debug purposes */
 ;(() => {
-  // Enforce HTTPS
-  if (
-    window.location.protocol !== 'https:' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
-  ) {
-    window.location.protocol = 'https:'
-    return
-  }
-
   console.log(
     '%c⚡ Powered by native Javascript',
     'font-weight: bold; font-size: 16px;',
