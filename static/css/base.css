@@ -52,3 +52,9 @@ code::after {
 code:hover::after {
   opacity: 1;
 }
+
+@media (prefers-color-scheme: dark) {
+  code::after {
+    color: black;
+  }
+}
