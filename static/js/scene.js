@@ -5,15 +5,40 @@ import { AnimationElement, Elements } from '/static/js/util/animation.js'
  */
 export class Scene {
   static Transitions = {
+    /**
+     *
+     * @param {Scene} Animations
+     * @param {Scene} src
+     * @param {HTMLElement} main
+     * @param {HTMLElement} sidebar
+     */
     async loading(Animations, src, main, sidebar) {
       if (src) await src.dispose(Animations)
+      let mainLoadingIcon, sidebarLoadingIcon
+      let reuseMainLoadingIcon =
+          main.children.length === 1 &&
+          main.firstElementChild.classList.contains('loading-icon'),
+        reuseSidebarLoadingIcon =
+          sidebar.children.length === 1 &&
+          sidebar.firstElementChild.classList.contains('loading-icon')
+      if (reuseMainLoadingIcon) {
+        mainLoadingIcon = new AnimationElement(main.firstElementChild)
+      } else {
+        mainLoadingIcon = Elements.div().class('loading-icon').hide()
+        main.appendChild(mainLoadingIcon.element)
+      }
+      if (reuseSidebarLoadingIcon) {
+        sidebarLoadingIcon = new AnimationElement(sidebar.firstElementChild)
+      } else {
+        sidebarLoadingIcon = Elements.div().class('loading-icon').hide()
+        sidebar.appendChild(sidebarLoadingIcon.element)
+      }
       await Animations.wait(200)
-      const mainLoadingIcon = Elements.div().class('loading-icon').hide()
-      const sidebarLoadingIcon = Elements.div().class('loading-icon').hide()
-      main.appendChild(mainLoadingIcon.element)
-      sidebar.appendChild(sidebarLoadingIcon.element)
-      await Animations.fadein(mainLoadingIcon, 200)
-      await Animations.fadein(sidebarLoadingIcon, 200)
+
+      if (!reuseMainLoadingIcon) Animations.fadein(mainLoadingIcon, 200)
+      if (!reuseSidebarLoadingIcon) Animations.fadein(sidebarLoadingIcon, 200)
+
+      return { main: mainLoadingIcon, sidebar: sidebarLoadingIcon }
     }
   }
   static Disposes = {

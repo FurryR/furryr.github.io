@@ -30,9 +30,25 @@
           flex-direction: column;
           align-items: center;
         }
+
         .blog-components-recent-split {
+          border: none;
+          box-shadow: 0 1px 0 0 black;
+          color: black;
+          overflow: visible;
+          text-align: center;
+          height: 5px;
           width: 80%;
         }
+
+        .blog-components-recent-split::after {
+          background-color: var(--blog-background);
+          content: '§';
+          padding: 0 4px;
+          position: relative;
+          top: -3px;
+        }
+
         .blog-components-recent-end {
           color: gray;
           font-size: 0.8em;
@@ -98,6 +114,13 @@
           top: 2px;
           margin-right: 2px;
           scale: 0.8;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .blog-components-recent-split::after {
+            color: white;
+            filter: invert(1) hue-rotate(180deg);
+          }
         }
       </style>
       <!-- TODO: JavaScript 化 & 上下页 & 加载动画 & 转场动画 -->

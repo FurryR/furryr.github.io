@@ -1,0 +1,54 @@
+blog {
+  display: none;
+}
+
+* {
+  font-family: 'Fira Code', Consolas, 'Courier New', system-ui;
+}
+
+article {
+  line-height: 0.9em;
+  margin-bottom: 3em;
+}
+
+article h1 {
+  font-size: 1.5em;
+}
+
+article h2 {
+  font-size: 1.3em;
+}
+
+article h3 {
+  font-size: 1.2em;
+}
+
+code {
+  font-size: 0.9em;
+  background-color: #eee;
+  padding: 1em 1em;
+  border-radius: 4px;
+  display: block;
+  position: relative;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+}
+
+code::after {
+  content: attr(lang);
+  position: absolute;
+  top: 0;
+  right: 0.5em;
+  background-color: gray;
+  color: white;
+  font-size: 0.8em;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+code:hover::after {
+  opacity: 1;
+}

@@ -7,6 +7,7 @@ import { Effect } from '/static/js/effect.js'
 const css = `
 .blog-main-intro {
   text-align: center;
+  text-wrap-mode: nowrap;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -28,14 +29,12 @@ export class MainScene extends Scene {
       document.head.append(style)
       return () => style.remove()
     })
-    if (fromScene) {
-      await Scene.Transitions.loading(
-        Animations,
-        fromScene,
-        this.main,
-        this.sidebar
-      )
-    }
+    const loadingIcons = await Scene.Transitions.loading(
+      Animations,
+      fromScene,
+      this.main,
+      this.sidebar
+    )
     let configuration
     try {
       configuration = await this.configuration
@@ -45,11 +44,8 @@ export class MainScene extends Scene {
     const mainContent = configuration.mainContent.cloneNode(true)
     const sideContent = configuration.sideContent.cloneNode(true)
     // 只添加子元素
-    const mainLoadingIcon = new AnimationElement(
-      this.main.querySelector('.loading-icon')
-    )
-    await Animations.fadeout(mainLoadingIcon, 200)
-    mainLoadingIcon.element.remove()
+    await Animations.fadeout(loadingIcons.main, 200)
+    loadingIcons.main.element.remove()
     if (!fromScene) {
       let introTitle
       const introContainer = Elements.div([
@@ -79,11 +75,8 @@ export class MainScene extends Scene {
       }
     })
     await Animations.fadein(new AnimationElement(this.main), 200)
-    const sidebarLoadingIcon = new AnimationElement(
-      this.sidebar.querySelector('.loading-icon')
-    )
-    await Animations.fadeout(sidebarLoadingIcon, 200)
-    sidebarLoadingIcon.element.remove()
+    await Animations.fadeout(loadingIcons.sidebar, 200)
+    loadingIcons.sidebar.element.remove()
     for (const child of Array.from(sideContent.children)) {
       this.sidebar.appendChild(child)
     }

@@ -5,11 +5,19 @@ import { withResolvers } from '/static/js/util/promise.js'
 import { Scene } from '/static/js/scene.js'
 import { Effect } from '/static/js/effect.js'
 
-const css = `
+// TODO: asynchronous import & highlight
+import hljs from 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/highlight.min.js'
+import { addStyle } from '/static/js/util/style.js'
 
+addStyle(
+  new URL(
+    'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/default.min.css'
+  )
+)
+const css = `
 .blog-post-split {
   border: none;
-  box-shadow: 0 1px 0 0 #333;
+  box-shadow: 0 1px 0 0 black;
   color: black;
   overflow: visible;
   text-align: center;
@@ -17,7 +25,7 @@ const css = `
 }
 
 .blog-post-split::after {
-  background-color: white;
+  background-color: var(--blog-background);
   content: '§';
   padding: 0 4px;
   position: relative;
@@ -140,7 +148,6 @@ const css = `
     filter: invert(1) hue-rotate(180deg);
   }
   .blog-post-split::after {
-    background-color: var(--blog-background);
     color: white;
     filter: invert(1) hue-rotate(180deg);
   }
@@ -187,21 +194,25 @@ export class BlogScene extends Scene {
       document.head.append(style)
       return () => style.remove()
     })
-    if (fromScene) {
-      await Scene.Transitions.loading(
-        Animations,
-        fromScene,
-        this.main,
-        this.sidebar
-      )
-    }
+    const loadingIcons = await Scene.Transitions.loading(
+      Animations,
+      fromScene,
+      this.main,
+      this.sidebar
+    )
     let configuration
     try {
       configuration = await this.configuration
     } catch {
       return
     }
+
     const article = configuration.article.cloneNode(true)
+    article.querySelectorAll('code').forEach(elem => {
+      const lang = elem.getAttribute('lang') ?? 'plaintext'
+      const highlighted = hljs.highlight(elem.textContent, { language: lang })
+      elem.innerHTML = highlighted.value
+    })
     const dependency = import('/static/js/component/utterances.js')
     const catalog = generateCatalog(article)
     const author =
@@ -289,11 +300,8 @@ export class BlogScene extends Scene {
       this.main.appendChild(utterances.element)
       return utterances.dispose
     })
-    const mainLoadingIcon = new AnimationElement(
-      this.main.querySelector('.loading-icon')
-    )
-    await Animations.fadeout(mainLoadingIcon, 200)
-    mainLoadingIcon.element.remove()
+    await Animations.fadeout(loadingIcons.main, 200)
+    loadingIcons.main.element.remove()
     await Animations.fadein(title, 200)
     await Animations.wait(200)
     await Animations.fadein(author, 150)
@@ -326,11 +334,8 @@ export class BlogScene extends Scene {
       catalogList.child(catalogs)
       this.sidebar.appendChild(title.element)
       this.sidebar.appendChild(catalogList.element)
-      const sidebarLoadingIcon = new AnimationElement(
-        this.sidebar.querySelector('.loading-icon')
-      )
-      await Animations.fadeout(sidebarLoadingIcon, 200)
-      sidebarLoadingIcon.element.remove()
+      await Animations.fadeout(loadingIcons.sidebar, 200)
+      loadingIcons.sidebar.element.remove()
       await Animations.wait(200)
       await Animations.fadein(title, 200)
       await Animations.wait(200)

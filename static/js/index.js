@@ -9,17 +9,7 @@ import { AnimationElement, Elements, scope } from '/static/js/util/animation.js'
 import { Route } from '/static/js/route.js'
 import { randomHitokoto } from '/static/js/hitokoto.js'
 import { withResolvers } from '/static/js/util/promise.js'
-
-function addStyle(url) {
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = url
-  document.head.appendChild(link)
-  return new Promise((resolve, reject) => {
-    link.addEventListener('load', ev => resolve(ev))
-    link.addEventListener('error', ev => reject(ev))
-  })
-}
+import { addStyle } from '/static/js/util/style.js'
 
 async function initalizeHeader() {
   return scope(async Animations => {
@@ -44,7 +34,16 @@ async function initalizeHeader() {
         }
       )
     }
-    let title, subtitle, hitokoto, home, archive, friend, contact
+    let title,
+      subtitle,
+      hitokoto,
+      home,
+      archive,
+      friend,
+      contact,
+      commandBar,
+      commandInput,
+      commandDropdown
     const header = Elements.header([
       Elements.h1([
         (title = Elements.span().content('熊谷 凌').class('blog-title').hide()),
@@ -60,20 +59,70 @@ async function initalizeHeader() {
       Elements.nav([
         Elements.ul([
           (home = Elements.li([
-            Elements.a().content('主页').with('href', '/index.html')
-          ]).hide()),
+            Elements.a()
+              .content('主页')
+              .class('blog-nav-links-item-a')
+              .with('href', '/index.html')
+          ])
+            .class('blog-nav-links-item')
+            .hide()),
           (archive = Elements.li([
-            Elements.a().content('归档').with('href', '/archive.html')
-          ]).hide()),
+            Elements.a()
+              .content('归档')
+              .class('blog-nav-links-item-a')
+              .with('href', '/archive.html')
+          ])
+            .class('blog-nav-links-item')
+            .hide()),
           (friend = Elements.li([
-            Elements.a().content('友链').with('href', '/friend.html')
-          ]).hide()),
+            Elements.a()
+              .content('友链')
+              .class('blog-nav-links-item-a')
+              .with('href', '/friend.html')
+          ])
+            .class('blog-nav-links-item')
+            .hide()),
           (contact = Elements.li([
-            Elements.a().content('联系方式').with('href', '/contact.html')
-          ]).hide())
+            Elements.a()
+              .content('联系方式')
+              .class('blog-nav-links-item-a')
+              .with('href', '/contact.html')
+          ])
+            .class('blog-nav-links-item-last')
+            .hide()),
+          (commandBar = Elements.li([
+            (commandInput = Elements.input()
+              .class('blog-nav-command')
+              .with('placeholder', '>')),
+            (commandDropdown = Elements.div([
+              Elements.div([
+                // TODO: command suggestion system
+                Elements.p()
+                  .content('以后应该会有搜索和命令功能')
+                  .style('textWrapMode', 'nowrap')
+                  .style('position', 'absolute')
+                  .style('top', '50%')
+                  .style('left', '50%')
+                  .style('transform', 'translate(-50%, -50%)')
+                  .style('margin', '0')
+              ]).class('blog-nav-command-dropdown-container')
+            ])
+              .class('blog-nav-command-dropdown')
+              .hide())
+          ])
+            .class('blog-nav-item-command')
+            .hide())
         ])
       ]).class('blog-nav')
     ])
+    commandInput.element.addEventListener('focus', async () => {
+      await Animations.fadein(commandDropdown, 200)
+    })
+    commandInput.element.addEventListener('blur', async () => {
+      await Animations.fadeout(commandDropdown, 200)
+      commandDropdown.hide()
+    })
+
     home.element.addEventListener('click', ev =>
       Route.instance.handleAnchor(ev)
     )
@@ -89,6 +138,7 @@ async function initalizeHeader() {
     await Animations.fadein(friend, 150)
     await Animations.fadein(contact, 150)
     await Promise.all([home, archive, friend, contact].map(navPlay))
+    await Animations.fadein(commandBar, 150)
   }).promise
 }
 function initalizeMain() {
@@ -196,20 +246,39 @@ async function initalizeFooter(contentPromise) {
 
 window.Route = Route /** For debug purposes */
 ;(() => {
+  // Enforce HTTPS
+  if (
+    window.location.protocol !== 'https:' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    window.location.protocol = 'https:'
+    return
+  }
+
+  console.log(
+    '%c⚡ Powered by native Javascript',
+    'font-weight: bold; font-size: 16px;',
+    '- Blazing fast and lightweight.'
+  )
+
   // Preload all scenes parallelly
   for (const v of Route.Routes.values()) v()
 
   const routeLoaded = withResolvers()
   window.addEventListener('popstate', async ev => {
+    const token = {
+      url: window.location.pathname,
+      dom: ev.state?.document
+    }
     await routeLoaded.promise
-    const dom = ev.state?.document
-    if (dom) {
+    if (token.dom) {
       Route.instance.handleCache(
-        window.location.pathname,
-        new DOMParser().parseFromString(dom, 'text/html')
+        token.url,
+        new DOMParser().parseFromString(token.dom, 'text/html')
       )
     } else {
-      Route.instance.handleURL(window.location.pathname)
+      Route.instance.handleURL(token.url)
     }
   })
 
@@ -231,7 +300,7 @@ window.Route = Route /** For debug purposes */
       window.location.pathname
     )
     try {
-      await addStyle('/static/css/main.css')
+      await addStyle(new URL('/static/css/main.css', window.location.href))
     } catch (e) {
       document.body.className = 'loading-failure'
       throw e
@@ -243,10 +312,12 @@ window.Route = Route /** For debug purposes */
     const footerPromise = initalizeFooter(
       Promise.all([headerPromise, mainResult.promise])
     )
+    const dummyMark = Symbol('dummy')
     const dummyScene = {
       main: mainResult.main,
       sidebar: mainResult.sidebar,
-      dummy: true
+      [dummyMark]: true,
+      dispose() {}
     }
     Route.instance = new Route(dummyScene)
     Route.instance.currentAnimation = animationContext
@@ -263,7 +334,7 @@ window.Route = Route /** For debug purposes */
       }, 1000)
       throw e
     }
-    if (Route.instance.current.dummy) {
+    if (Route.instance.current[dummyMark]) {
       Route.instance.current = firstScene(mainResult.main, mainResult.sidebar)
       await Route.instance.current.new(Animations, null)
     }

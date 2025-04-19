@@ -12,23 +12,24 @@ export class Route {
     this.current = firstScene
     this.currentAnimation = null
     this.currentRequest = null
-    this.handlingAnchor = false
   }
   async to(sceneFn, previousRequest) {
     const src = this.current
     const dest = sceneFn(src.main, src.sidebar)
+    const currentAnimation = this.currentAnimation
     this.current = dest
     if (previousRequest) {
       previousRequest.reject(new Error('Cancelled'))
     }
-    if (this.currentAnimation) {
-      this.currentAnimation.skip()
-      await this.currentAnimation.promise
+    if (currentAnimation) {
+      currentAnimation.skip()
+      await currentAnimation.promise
     }
-    this.currentAnimation = scope(async Animations => {
-      await dest.new(Animations, src.dummy ? null : src)
-      this.currentAnimation = null
-    })
+    if (this.currentAnimation === currentAnimation)
+      this.currentAnimation = scope(async Animations => {
+        await dest.new(Animations, src)
+        this.currentAnimation = null
+      })
     await this.currentAnimation.promise
   }
 
@@ -82,12 +83,8 @@ export class Route {
    */
   handleAnchor(ev) {
     ev.preventDefault()
-    if (this.handlingAnchor || this.current === null) return
-    this.handlingAnchor = true
     const href = ev.target.getAttribute('href')
     if (!href) return
-    return this.handleURL(href).then(() => {
-      this.handlingAnchor = false
-    })
+    return this.handleURL(href)
   }
 }

@@ -209,6 +209,10 @@ export const Elements = {
    */
   hr() {
     return new AnimationElement(document.createElement('hr'))
+  },
+
+  input() {
+    return new AnimationElement(document.createElement('input'))
   }
 }
 
@@ -234,12 +238,15 @@ export function scope(fn) {
     if (skipped) return Promise.resolve()
     return new Promise(resolve => {
       runningAnimations.push(resolve)
-      setTimeout(() => {
-        if (!skipped) {
+      const end = performance.now() + ms
+      requestAnimationFrame(function handle(timestamp) {
+        if (skipped || timestamp >= end) {
           runningAnimations = runningAnimations.filter(a => a !== resolve)
           resolve()
+        } else {
+          requestAnimationFrame(handle)
         }
-      }, ms)
+      })
     })
   }
   const fadein = (elem, duration, easing = 'ease-out') => {
@@ -300,55 +307,3 @@ export function scope(fn) {
     }
   }
 }
-
-// export const Animations = {
-//   wait(ms) {
-//     return new Promise(resolve => {
-//       setTimeout(resolve, ms)
-//     })
-//   },
-//   /**
-//    *
-//    * @param {EnforcedElement} elem
-//    * @param {number} duration
-//    * @param {string} easing
-//    */
-//   fadein(elem, duration, easing = 'ease-out') {
-//     return elem.show().animate(
-//       [
-//         {
-//           opacity: 0
-//         },
-//         {
-//           opacity: 1
-//         }
-//       ],
-//       {
-//         easing,
-//         duration
-//       }
-//     )
-//   },
-//   /**
-//    *
-//    * @param {EnforcedElement} elem
-//    * @param {number} duration
-//    * @param {string} easing
-//    */
-//   fadeout(elem, duration, easing = 'ease-out') {
-//     return elem.animate(
-//       [
-//         {
-//           opacity: 1
-//         },
-//         {
-//           opacity: 0
-//         }
-//       ],
-//       {
-//         easing,
-//         duration
-//       }
-//     )
-//   }
-// }
