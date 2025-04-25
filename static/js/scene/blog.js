@@ -5,16 +5,8 @@ import { withResolvers } from '/static/js/util/promise.js'
 import { Scene } from '/static/js/scene.js'
 import { Effect } from '/static/js/effect.js'
 
-// TODO: asynchronous import & highlight
-import hljs from 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/highlight.min.js'
-import { addStyle } from '/static/js/util/style.js'
-
-addStyle(
-  new URL(
-    'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/default.min.css'
-  )
-)
 const css = `
+@import url('https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/default.min.css');
 .blog-post-split {
   border: none;
   box-shadow: 0 1px 0 0 black;
@@ -208,12 +200,43 @@ export class BlogScene extends Scene {
     }
 
     const article = configuration.article.cloneNode(true)
-    article.querySelectorAll('code').forEach(elem => {
+    const hljsDependency = import(
+      'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/core.min.js'
+    ).then(v => v.default)
+
+    article.querySelectorAll('code').forEach(async elem => {
       const lang = elem.getAttribute('lang') ?? 'plaintext'
+      const hljs = await hljsDependency
+      if (!hljs.getLanguage(lang)) {
+        const highlightFn = await import(
+          `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/${lang}.min.js`
+        ).then(v => v.default)
+        hljs.registerLanguage(lang, highlightFn)
+      }
+
       const highlighted = hljs.highlight(elem.textContent, { language: lang })
+      // TODO: 高亮加载动画
+      const animation = new AnimationElement(elem)
       elem.innerHTML = highlighted.value
+      await Animations.animate(
+        animation,
+        [
+          {
+            filter: 'grayscale(1)'
+          },
+          {
+            filter: 'grayscale(0)'
+          }
+        ],
+        {
+          duration: 400,
+          easing: 'ease-out'
+        }
+      )
     })
-    const dependency = import('/static/js/component/utterances.js')
+    const dependency = import('/static/js/component/utterances.js').then(
+      v => v.default
+    )
     const catalog = generateCatalog(article)
     const author =
       configuration.author.length > 1
@@ -261,7 +284,7 @@ export class BlogScene extends Scene {
       .class('utterances-placeholder')
       .hide()
     this.main.appendChild(utterancesPlaceholder.element)
-    const { default: Utterances } = await dependency
+    const Utterances = await dependency
     this.effect.use(() => {
       const utterances = Utterances({
         repo: 'FurryR/furryr.github.io',

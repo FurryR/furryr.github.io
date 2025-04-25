@@ -219,8 +219,13 @@ export const Elements = {
 export function scope(fn) {
   let skipped = false
   let runningAnimations = []
-  const animate = (elem, keyframes, options) => {
-    if (skipped) return Promise.resolve()
+  const preprocess = callback => {
+    return function (...args) {
+      if (skipped) return Promise.resolve()
+      return callback(...args)
+    }
+  }
+  const animate = preprocess((elem, keyframes, options) => {
     const animation = elem.element.animate(keyframes, options)
 
     return new Promise(resolve => {
@@ -233,9 +238,9 @@ export function scope(fn) {
         resolve()
       })
     })
-  }
-  const wait = ms => {
-    if (skipped) return Promise.resolve()
+  })
+
+  const wait = preprocess(ms => {
     return new Promise(resolve => {
       runningAnimations.push(resolve)
       const end = performance.now() + ms
@@ -248,8 +253,9 @@ export function scope(fn) {
         }
       })
     })
-  }
-  const fadein = (elem, duration, easing = 'ease-out') => {
+  })
+
+  const fadein = preprocess((elem, duration, easing = 'ease-out') => {
     if (skipped) return Promise.resolve()
     elem.show()
     return animate(
@@ -267,8 +273,9 @@ export function scope(fn) {
         duration
       }
     )
-  }
-  const fadeout = (elem, duration, easing = 'ease-out') => {
+  })
+
+  const fadeout = preprocess((elem, duration, easing = 'ease-out') => {
     if (skipped) return Promise.resolve()
     return animate(
       elem,
@@ -285,7 +292,8 @@ export function scope(fn) {
         duration
       }
     )
-  }
+  })
+
   const obj = {
     animate,
     wait,
