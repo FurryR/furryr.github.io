@@ -13,165 +13,19 @@
   </head>
   <body>
     <main>
-      <style>
-        .blog-index-main-title {
-          margin: 1.5em auto 0.5em;
-          text-align: center;
-        }
-        .blog-index-main-subtitle {
-          margin: 0 auto 3em;
-          text-align: center;
-          font-style: italic;
-          color: gray;
-        }
-
-        .blog-components-recent-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .blog-components-recent-split {
-          border: none;
-          box-shadow: 0 1px 0 0 black;
-          color: black;
-          overflow: visible;
-          text-align: center;
-          height: 5px;
-          width: 80%;
-        }
-
-        .blog-components-recent-split::after {
-          background-color: var(--blog-background);
-          content: '§';
-          padding: 0 4px;
-          position: relative;
-          top: -3px;
-        }
-
-        .blog-components-recent-end {
-          color: gray;
-          font-size: 0.8em;
-        }
-
-        .blog-components-recent-post {
-          margin-bottom: 1.5em;
-        }
-
-        .blog-components-recent-post-title {
-          font-size: 1.5em;
-          margin-bottom: 0.5em;
-        }
-        .blog-components-recent-post-title a {
-          text-decoration: none;
-          color: inherit;
-          transition: color 0.3s;
-        }
-        .blog-components-recent-post-title a:hover {
-          color: #007acc;
-        }
-
-        .blog-components-recent-post-author,
-        .blog-components-recent-post-time,
-        .blog-components-recent-post-category,
-        .blog-components-recent-post-tag {
-          font-size: 0.8em;
-          color: gray;
-          margin: 0;
-          margin-right: 1em;
-          font-style: italic;
-        }
-
-        .blog-components-recent-post-author-etc {
-          font-size: 0.5em;
-          margin-left: 5px;
-        }
-
-        .blog-components-recent-post-author::before {
-          content: url('/static/res/icons/blog-author.svg');
-          position: relative;
-          top: 2px;
-          margin-right: 2px;
-          scale: 0.8;
-        }
-        .blog-components-recent-post-time::before {
-          content: url('/static/res/icons/blog-time.svg');
-          position: relative;
-          top: 2px;
-          margin-right: 2px;
-          scale: 0.8;
-        }
-        .blog-components-recent-post-category::before {
-          content: url('/static/res/icons/blog-category.svg');
-          position: relative;
-          top: 2px;
-          margin-right: 2px;
-          scale: 0.8;
-        }
-        .blog-components-recent-post-tag::before {
-          content: url('/static/res/icons/blog-tag.svg');
-          position: relative;
-          top: 2px;
-          margin-right: 2px;
-          scale: 0.8;
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .blog-components-recent-split::after {
-            color: white;
-            filter: invert(1) hue-rotate(180deg);
-          }
-        }
-      </style>
-      <!-- TODO: JavaScript 化 & 上下页 & 加载动画 & 转场动画 -->
-      <h1 class="blog-index-main-title">FurryR's blog</h1>
-      <p class="blog-index-main-subtitle">熊谷凌的所见所闻</p>
-      <div class="blog-components-recent-container">
-        <div class="blog-components-recent-post">
-          <h2 class="blog-components-recent-post-title">
-            <a href="/posts/1.html">示例文章</a>
-          </h2>
-          <span class="blog-components-recent-post-author" title="熊谷 凌、玻狸"
-            ><span>熊谷 凌</span
-            ><span class="blog-components-recent-post-author-etc"
-              >等</span
-            ></span
-          ><span class="blog-components-recent-post-time"
-            >1970-01-01T00:00:00.000Z</span
-          ><span class="blog-components-recent-post-category">前端</span
-          ><span class="blog-components-recent-post-tag">标签1 标签2</span>
-        </div>
-        <div class="blog-components-recent-post-metadata">
-          <h2 class="blog-components-recent-post-title">示例文章2</h2>
-          <span class="blog-components-recent-post-author" title="熊谷 凌、玻狸"
-            ><span>熊谷 凌</span
-            ><span class="blog-components-recent-post-author-etc"
-              >等</span
-            ></span
-          ><span class="blog-components-recent-post-time"
-            >1970-01-01T00:00:00.000Z</span
-          ><span class="blog-components-recent-post-category">前端</span
-          ><span class="blog-components-recent-post-tag">标签1 标签2</span>
-        </div>
-        <hr class="blog-components-recent-split" />
-        <p class="blog-components-recent-end">End</p>
-      </div>
+      <h1>FurryR 的知识库</h1>
+      <p>今天想知道什么呢？</p>
+      <search>
+        <!-- TODO: 实现搜索功能 -->
+        <input type="text" placeholder="询问我任何事情。" autocomplete="off" />
+      </search>
+      <nav>
+        <a href="/archive.html">查看所有文章</a>
+      </nav>
     </main>
     <sidebar>
-      <style>
-        .blog-index-sidebar-title {
-          margin-bottom: 1.5em;
-        }
-        .blog-index-sidebar-avatar {
-          width: 100%;
-          height: 30%;
-          border-radius: 5px;
-          text-align: center;
-        }
-      </style>
-      <h2 class="blog-index-sidebar-title">关于我</h2>
+      <h2>关于我</h2>
       <img
-        class="blog-index-sidebar-avatar"
         src="https://avatars.githubusercontent.com/u/55276797?v=4"
         alt="熊谷凌"
       />

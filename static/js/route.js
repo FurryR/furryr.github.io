@@ -5,6 +5,7 @@ export class Route {
   /** @type {Map<RegExp, any>} */
   static Routes = new Map([
     [/^\/(?:index.html)?$/, () => import('/static/js/scene/main.js')],
+    [/^\/archive\.html$/, () => import('/static/js/scene/archive.js')],
     [/^\/posts\/.*\.html$/, () => import('/static/js/scene/blog.js')]
   ])
   static instance = null

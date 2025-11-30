@@ -1,0 +1,56 @@
+@import '/static/css/base.css';
+
+index {
+  display: block;
+}
+
+post {
+  display: block;
+  margin-bottom: 2em;
+  padding: 1em;
+  border: 1px solid lightgray;
+  border-radius: 4px;
+}
+
+name {
+  display: block;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+author,
+time,
+category,
+tag {
+  display: inline-block;
+  font-size: 0.8em;
+  color: gray;
+  margin-right: 1em;
+  font-style: italic;
+}
+
+author::before {
+  content: '作者: ';
+}
+
+time::before {
+  content: '时间: ';
+}
+
+category::before {
+  content: '分类: ';
+}
+
+tag::before {
+  content: '标签: ';
+}
+
+url {
+  display: block;
+  margin-top: 0.5em;
+}
+
+url::before {
+  content: '链接: ';
+}

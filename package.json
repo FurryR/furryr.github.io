@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"**/*.{js,json,css,html}\"",
     "format:check": "prettier --check \"**/*.{js,json,css,html}\"",
-    "lint": "eslint ./static/js/**/*.js"
+    "lint": "eslint ./static/js/**/*.js",
+    "dev": "http-server -c-1 -a localhost -p 8080"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   },
   "homepage": "https://github.com/FurryR/furryr.github.io#readme",
   "devDependencies": {
+    "http-server": "^14.1.1",
     "prettier": "^3.5.3"
   }
 }

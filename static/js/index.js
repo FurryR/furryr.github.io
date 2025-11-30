@@ -122,9 +122,8 @@ async function initalizeHeader() {
       await Animations.fadeout(commandDropdown, 200)
       commandDropdown.hide()
     })
-
-    home.element.addEventListener('click', ev =>
-      Route.instance.handleAnchor(ev)
+    ;[home, archive].forEach(v =>
+      v.element.addEventListener('click', ev => Route.instance.handleAnchor(ev))
     )
     // TODO: search bar
     document.body.appendChild(header.element)

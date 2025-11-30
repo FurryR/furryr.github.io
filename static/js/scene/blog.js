@@ -167,6 +167,8 @@ function generateCatalog(element) {
 }
 
 export class BlogScene extends Scene {
+  static name = 'BlogScene'
+
   /**
    *
    * @param {HTMLDivElement} main
@@ -179,19 +181,213 @@ export class BlogScene extends Scene {
     this.effect = new Effect()
   }
 
+  /**
+   * 实现从 archive 到 blog 的特殊过渡动画
+   */
+  async archiveToPostTransition(Animations, fromScene, transitionContext) {
+    const { postElement, postTitle, metadata, rect, containerRect } =
+      transitionContext
+
+    // 获取所有文章元素
+    const allPosts = Array.from(
+      fromScene.main.querySelectorAll('.blog-archive-post')
+    )
+    const otherPosts = allPosts.filter(el => el !== postElement)
+
+    // 获取分页控件
+    const pagination = fromScene.main.querySelector('.blog-archive-pagination')
+
+    // 1. 淡出其他文章和分页控件
+    const fadeOutElements = [
+      ...otherPosts.map(el => new AnimationElement(el)),
+      ...Array.from(
+        fromScene.main.querySelectorAll('.blog-archive-separator')
+      ).map(el => new AnimationElement(el))
+    ]
+
+    if (pagination) {
+      fadeOutElements.push(new AnimationElement(pagination))
+    }
+
+    // 同时淡出标题和副标题
+    const archiveTitle = fromScene.main.querySelector('.blog-archive-title')
+    const archiveSubtitle = fromScene.main.querySelector(
+      '.blog-archive-subtitle'
+    )
+    if (archiveTitle) fadeOutElements.push(new AnimationElement(archiveTitle))
+    if (archiveSubtitle)
+      fadeOutElements.push(new AnimationElement(archiveSubtitle))
+
+    // 淡出侧边栏
+    const sidebarElements = Array.from(fromScene.sidebar.children).map(
+      el => new AnimationElement(el)
+    )
+
+    // 并行执行淡出动画
+    Promise.all([
+      ...fadeOutElements.map(el => Animations.fadeout(el, 300)),
+      ...sidebarElements.map(el => Animations.fadeout(el, 300))
+    ]).then(() => {
+      sidebarElements.forEach(el => el.element.remove())
+      fadeOutElements.forEach(el => {
+        if (el.element !== postElement) el.element.style.visibility = 'hidden'
+      })
+    })
+
+    // 移除淡出的元素 (侧边栏)
+
+    // 2. 将选中的文章元素移动到顶部并调整大小
+    const postElem = new AnimationElement(postElement)
+    const titleElem = new AnimationElement(postTitle)
+    const metadataElem = new AnimationElement(metadata)
+
+    // 计算需要移动的距离
+    const targetTop = -26 // 目标距离容器顶部的距离
+    const mainRect = this.main.getBoundingClientRect()
+
+    const scrollTop = this.main.parentElement.scrollTop // hack
+
+    // 计算当前元素相对于容器顶部的位置
+    const currentTop1 = rect.top - mainRect.top + scrollTop
+    const currentTop2 = rect.top - containerRect.top + scrollTop
+
+    // 计算需要移动的距离（使用 translateY）
+    // FIXME: this is hack af; fix it someday
+    const translateDistance1 = targetTop - currentTop1
+    const translateDistance2 = targetTop - currentTop2
+
+    // 计算标题的目标大小（blog 页面的标题大小是 2em）
+    const currentTitleSize = parseFloat(getComputedStyle(postTitle).fontSize)
+    const targetTitleSize = currentTitleSize * (2.0 / 1.8) // 从 1.8em 到 2em
+
+    // 3. 执行移动和缩放动画
+    await Promise.all([
+      // 使用 translateY 移动整个文章块
+      Animations.animate(
+        postElem,
+        [
+          {
+            transform: 'translate(0,0)'
+          },
+          {
+            transform: `translate(-15px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
+          }
+        ],
+        {
+          duration: 500,
+          easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+        }
+      ),
+      // 调整标题大小
+      Animations.animate(
+        titleElem,
+        [
+          {
+            fontSize: `${currentTitleSize}px`
+          },
+          {
+            fontSize: `${targetTitleSize}px`
+          }
+        ],
+        {
+          duration: 500,
+          easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+        }
+      ),
+      // 调整 metadata 的 margin-bottom（从 archive 的 1em 到 blog 的 1.5em）
+      Animations.animate(
+        titleElem,
+        [
+          {
+            marginBottom: '0.5em'
+          },
+          {
+            marginBottom: '0.69em'
+          }
+        ],
+        {
+          duration: 500,
+          easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+        }
+      )
+    ])
+    await fromScene.dispose()
+  }
+
   async new(Animations, fromScene) {
+    if (fromScene && fromScene.constructor.name !== 'ArchiveScene') {
+      await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
+      await fromScene.dispose()
+    }
+
     this.effect.use(() => {
       const style = document.createElement('style')
       style.textContent = css
       document.head.append(style)
       return () => style.remove()
     })
-    const loadingIcons = await Scene.Transitions.loading(
-      Animations,
-      fromScene,
-      this.main,
-      this.sidebar
-    )
+
+    // 检测是否来自 archive 场景的特殊过渡
+    const isArchiveTransition =
+      fromScene &&
+      fromScene.constructor.name === 'ArchiveScene' &&
+      fromScene.transitionContext
+    const transitionContext = isArchiveTransition
+      ? fromScene.transitionContext
+      : null
+
+    let loadingIcons
+    let title, time, category, tag, author, metadata
+
+    if (!isArchiveTransition) {
+      // 标准过渡：显示 loading 图标
+      loadingIcons = await Scene.Transitions.loading(
+        Animations,
+        this.main,
+        this.sidebar
+      )
+    } else {
+      // Archive 过渡：立即清空场景但不显示 loading
+      if (fromScene) {
+        // 执行 archive 的特殊退出动画
+        await this.archiveToPostTransition(
+          Animations,
+          fromScene,
+          transitionContext
+        )
+
+        // 立即从 transitionContext 创建 metadata，避免等待配置加载
+        const postData = transitionContext.postData
+        const authors = postData.author.split(',').map(v => v.trim())
+
+        author =
+          authors.length > 1
+            ? Elements.span([
+                Elements.span().content(authors[0]),
+                Elements.span().content('等').class('blog-post-author-etc')
+              ])
+                .class('blog-post-author')
+                .with('title', authors.join('、'))
+            : Elements.span().content(authors[0]).class('blog-post-author')
+
+        metadata = Elements.div([
+          (title = Elements.h1()
+            .content(postData.name)
+            .class('blog-post-title')),
+          author,
+          (time = Elements.span()
+            .content(postData.time)
+            .class('blog-post-time')),
+          (category = Elements.span()
+            .content(postData.category)
+            .class('blog-post-category')),
+          (tag = Elements.span().content(postData.tag).class('blog-post-tag'))
+        ]).class('blog-post-metadata')
+
+        this.main.appendChild(metadata.element)
+      }
+    }
+
     let configuration
     try {
       configuration = await this.configuration
@@ -215,7 +411,6 @@ export class BlogScene extends Scene {
       }
 
       const highlighted = hljs.highlight(elem.textContent, { language: lang })
-      // TODO: 高亮加载动画
       const animation = new AnimationElement(elem)
       elem.innerHTML = highlighted.value
       await Animations.animate(
@@ -238,42 +433,48 @@ export class BlogScene extends Scene {
       v => v.default
     )
     const catalog = generateCatalog(article)
-    const author =
-      configuration.author.length > 1
-        ? Elements.span([
-            Elements.span().content(configuration.author[0]),
-            Elements.span().content('等').class('blog-post-author-etc')
-          ])
-            .class('blog-post-author')
-            .with('title', configuration.author.join('、'))
-            .hide()
-        : Elements.span()
-            .content(configuration.author[0])
-            .class('blog-post-author')
-            .hide()
-    let title, time, category, tag
+
+    // 如果不是 archive 过渡，则从配置创建 metadata
+    if (!isArchiveTransition) {
+      author =
+        configuration.author.length > 1
+          ? Elements.span([
+              Elements.span().content(configuration.author[0]),
+              Elements.span().content('等').class('blog-post-author-etc')
+            ])
+              .class('blog-post-author')
+              .with('title', configuration.author.join('、'))
+              .hide()
+          : Elements.span()
+              .content(configuration.author[0])
+              .class('blog-post-author')
+              .hide()
+
+      metadata = Elements.div([
+        (title = Elements.h1()
+          .content(configuration.title)
+          .class('blog-post-title')
+          .hide()),
+        author,
+        (time = Elements.span()
+          .content(configuration.time.toISOString())
+          .class('blog-post-time')
+          .hide()),
+        (category = Elements.span()
+          .content(configuration.category)
+          .class('blog-post-category')
+          .hide()),
+        (tag = Elements.span()
+          .content(configuration.tags.join(' '))
+          .class('blog-post-tag')
+          .hide())
+      ]).class('blog-post-metadata')
+
+      this.main.appendChild(metadata.element)
+    }
+
     const articleElementAnimation = withResolvers()
     const splitElementAnimation = withResolvers()
-    const metadata = Elements.div([
-      (title = Elements.h1()
-        .content(configuration.title)
-        .class('blog-post-title')
-        .hide()),
-      author,
-      (time = Elements.span()
-        .content(configuration.time.toISOString())
-        .class('blog-post-time')
-        .hide()),
-      (category = Elements.span()
-        .content(configuration.category)
-        .class('blog-post-category')
-        .hide()),
-      (tag = Elements.span()
-        .content(configuration.tags.join(' '))
-        .class('blog-post-tag')
-        .hide())
-    ]).class('blog-post-metadata')
-    this.main.appendChild(metadata.element)
     const articleElement = new AnimationElement(article).hide()
     this.main.appendChild(article)
     const split = Elements.hr().class('blog-post-split').hide()
@@ -323,14 +524,28 @@ export class BlogScene extends Scene {
       this.main.appendChild(utterances.element)
       return utterances.dispose
     })
-    await Animations.fadeout(loadingIcons.main, 200)
-    loadingIcons.main.element.remove()
-    await Animations.fadein(title, 200)
-    await Animations.wait(200)
-    await Animations.fadein(author, 150)
-    await Animations.fadein(time, 150)
-    await Animations.fadein(category, 150)
-    await Animations.fadein(tag, 150)
+
+    if (!isArchiveTransition) {
+      // 标准过渡：显示标题动画
+      await Animations.fadeout(loadingIcons.main, 200)
+      loadingIcons.main.element.remove()
+      await Animations.fadein(title, 200)
+      await Animations.wait(200)
+      await Animations.fadein(author, 150)
+      await Animations.fadein(time, 150)
+      await Animations.fadein(category, 150)
+      await Animations.fadein(tag, 150)
+    } else {
+      // Archive 过渡：metadata 已经在过渡动画后显示，只需显示 loading 图标用于加载正文
+      const loadingIcon = Elements.div().class('loading-icon')
+      this.main.insertBefore(loadingIcon.element, articleElement.element)
+      await Animations.fadein(loadingIcon, 200)
+
+      // 等待内容准备好后淡出 loading 图标
+      await Animations.wait(200)
+      await Animations.fadeout(loadingIcon, 200)
+      loadingIcon.element.remove()
+    }
     ;(async () => {
       const title = Elements.h3()
         .content('目录')
@@ -357,12 +572,20 @@ export class BlogScene extends Scene {
       catalogList.child(catalogs)
       this.sidebar.appendChild(title.element)
       this.sidebar.appendChild(catalogList.element)
-      await Animations.fadeout(loadingIcons.sidebar, 200)
-      loadingIcons.sidebar.element.remove()
-      await Animations.wait(200)
-      await Animations.fadein(title, 200)
-      await Animations.wait(200)
-      await Animations.fadein(catalogList, 200)
+
+      if (!isArchiveTransition) {
+        // 标准过渡：显示 loading 然后淡入
+        await Animations.fadeout(loadingIcons.sidebar, 200)
+        loadingIcons.sidebar.element.remove()
+        await Animations.wait(200)
+        await Animations.fadein(title, 200)
+        await Animations.wait(200)
+        await Animations.fadein(catalogList, 200)
+      } else {
+        // Archive 过渡：直接显示侧边栏内容
+        title.show()
+        catalogList.show()
+      }
     })()
     await Animations.wait(200)
     article.style.lineHeight = ''
@@ -393,8 +616,7 @@ export class BlogScene extends Scene {
     }
   }
 
-  async dispose(Animations) {
-    await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
+  async dispose() {
     this.effect.dispose()
   }
 }

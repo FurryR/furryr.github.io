@@ -8,12 +8,10 @@ export class Scene {
     /**
      *
      * @param {Scene} Animations
-     * @param {Scene} src
      * @param {HTMLElement} main
      * @param {HTMLElement} sidebar
      */
-    async loading(Animations, src, main, sidebar) {
-      if (src) await src.dispose(Animations)
+    async loading(Animations, main, sidebar) {
       let mainLoadingIcon, sidebarLoadingIcon
       let reuseMainLoadingIcon =
           main.children.length === 1 &&
@@ -87,7 +85,7 @@ export class Scene {
   async new(scope, fromScene) {
     throw new Error('Not implemented')
   }
-  async dispose(scope) {
+  async dispose() {
     throw new Error('Not implemented')
   }
 }

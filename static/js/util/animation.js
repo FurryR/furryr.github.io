@@ -187,12 +187,26 @@ export const Elements = {
     return new AnimationElement(document.createElement('h1')).child(child)
   },
   /**
+   * @param {AnimationElement[]?} child
+   * @returns {AnimationElement<HTMLHeadingElement>}
+   */
+  h2(child) {
+    return new AnimationElement(document.createElement('h2')).child(child)
+  },
+  /**
    *
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLHeadingElement>}
    */
   h3(child) {
     return new AnimationElement(document.createElement('h3')).child(child)
+  },
+  /**
+   * @param {AnimationElement[]?} child
+   * @returns {AnimationElement<HTMLHeadingElement>}
+   */
+  h4(child) {
+    return new AnimationElement(document.createElement('h4')).child(child)
   },
 
   /**
@@ -211,8 +225,19 @@ export const Elements = {
     return new AnimationElement(document.createElement('hr'))
   },
 
+  /**
+   * @returns {AnimationElement<HTMLInputElement>}
+   */
   input() {
     return new AnimationElement(document.createElement('input'))
+  },
+
+  /**
+   * @param {AnimationElement[]?} child
+   * @returns {AnimationElement<HTMLLabelElement>}
+   */
+  label(child) {
+    return new AnimationElement(document.createElement('label')).child(child)
   }
 }
 
