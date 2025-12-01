@@ -1,14 +1,17 @@
 {
   "name": "furryr.github.io",
   "version": "1.0.0",
+  "type": "module",
   "description": "FurryR's personal blog (via vanilla Javascript).",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"**/*.{js,json,css,html}\"",
     "format:check": "prettier --check \"**/*.{js,json,css,html}\"",
-    "lint": "eslint ./static/js/**/*.js",
-    "dev": "http-server -c-1 -a localhost -p 8080"
+    "lint": "eslint ./res/static/js/**/*.js",
+    "dev": "http-server ./res/ -c-1 -a localhost -p 8080",
+    "update-archive": "node scripts/update-archive.js",
+    "create-post": "node scripts/create-post.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +24,11 @@
   },
   "homepage": "https://github.com/FurryR/furryr.github.io#readme",
   "devDependencies": {
+    "enquirer": "^2.4.1",
     "http-server": "^14.1.1",
     "prettier": "^3.5.3"
+  },
+  "dependencies": {
+    "node-html-parser": "^6.1.13"
   }
 }

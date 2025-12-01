@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>第一篇文章 / 浅谈从零制作博客的一些感想</title>
+    <meta
+      name="description"
+      content="和之前一样，我又造了博客的轮子。这一次仍然是使用原生库实现，但我在使用流畅性/懒加载上下了很多功夫，希望大家可以喜欢。同时，也趁这个机会来聊聊博客制作上的一些心得。"
+    />
+    <blog>
+      <author>熊谷 凌</author>
+      <time>2025-12-01T15:05:48.471Z</time>
+      <category>前端</category>
+      <tag>Javascript HTML</tag>
+    </blog>
+    <script src="/static/js/index.js" type="module" async defer></script>
+    <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
+    <noscript
+      ><link rel="stylesheet" href="/static/css/noscript/blog.css"
+    /></noscript>
+  </head>
+  <body>
+    <article>
+      <h1>写在前面</h1>
+      <p>
+        草草地完成了这个博客的第一篇文章。说来也搞笑，明明好好打磨过整个系统，将性能和细节都做到了最佳，结果竟然没有时间来写文章，也算是某种意义上的本末倒置。
+      </p>
+      <p>
+        上了高中以后什么都非常忙。这个博客的原型我记得也大概是在高一下那会搓出来的，还想着去经营自己，做什么技术博主，如今看来确实痴人说梦——写博客的愿望，也只能等到大学再说了。
+      </p>
+      <p>
+        但现在，抢在12点睡觉以前，似乎还有一些时间让我浅谈几句。也罢，反正也想不到点子，就让我简单谈谈这个博客的技术细节吧。
+      </p>
+      <h1>设计理念</h1>
+      <p>
+        如果你愿意看看
+        <a href="https://github.com/FurryR/furryr.github.io">这个博客的实现</a>
+        的话，你会发现 HTML
+        的部分少得可怜，并且基本上都是“自描述”的，使用了很多自定义的 tag
+        来描述各类元信息。
+      </p>
+      <p>
+        传统的博客，如 Hexo 等，在部署时会需要生成各种 json
+        索引，甚至构建整个页面，个人很不喜欢这样的设计。小的时候 (12、3岁左右)
+        制作的 blog，也是朝着尽量避免构建系统的方向设计的。
+      </p>
+      <p>
+        结果再怎么做，受当时的思维局限，还是没有逃开 json
+        这一坨，反倒弄巧成拙，搞得要我自己去维护 json
+        索引了，因此最后也没有写几篇博客就放弃了。想起来那也是我暑假即兴的产物。
+      </p>
+      <p>
+        这次的博客设计同样起源于暑假的灵光一现，只不过这次我想到——要是博客页面本身就可以充当元数据和索引呢？
+      </p>
+      <p>
+        结果就搞出了这样的渲染/索引两用的页面。事实上，效果非常不错（不提兼容性的话）。人类可读，不需要非常繁杂的构建工作，并且
+        noscript 下的支持很好。
+      </p>
+      <p>
+        并且，这样的设计还有利于动态解析，从而可以实现不输各种成熟框架的转场效果
+        (参见项目的 Scene 设计)。当然处理转场和 history 回退
+        的逻辑在当时确实难倒我好久，不过总算是糊出来了。
+      </p>
+      <p>目前我还没有遇到太大的设计错误，也感谢我自己之前正确的点子。</p>
+      <h1>动画效果</h1>
+      <p>
+        这个博客的动画基本上没有使用 CSS。和传统 CSS keyframe 不同，我尝试了新的
+        Element.animate API，受益匪浅。这个来自于 2020 年的 API
+        显著地简化了动画状态管理，也允许我不用想时间轴就能构建超级复杂的动画。
+      </p>
+      <p>
+        不过光有实现原理还不够，我需要各种点子。但是这个问题早就解决了。感谢
+        <a href="https://github.com/ookamitai">@ookamitai</a>
+        指路，我参考了非常多的 Nintendo Wii 的动画设计。
+      </p>
+      <p>
+        虽然 Nintendo Wii
+        作为一个千禧年的产物，其审美或许略为过时，但它的动画效果是绝对不输如今很多的大型网站的。最典型的比如展示文章的动画，这个很多博客应该都没有这么舒服，也是参照了
+        News Channel 的设计。
+      </p>
+      <p>
+        原生配上 Element.animate
+        API，使得动画舒适又流畅。这是很多大型框架永远无法做到的——它们本身带来的
+        overhead 已经导致了丢帧，也就无缘流畅动画了。
+      </p>
+      <p>待续...</p>
+    </article>
+  </body>
+</html>
