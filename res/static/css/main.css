@@ -29,6 +29,18 @@ body {
   .blog-nav-item-command {
     display: none;
   }
+  @media (pointer: coarse) {
+    .blog-main {
+      overflow-y: visible;
+      overflow-x: hidden;
+      height: auto;
+      width: 100%;
+      margin-right: 0;
+    }
+    .blog-page {
+      height: auto;
+    }
+  }
 }
 
 .blog-main-content,

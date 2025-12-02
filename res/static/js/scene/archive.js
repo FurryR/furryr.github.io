@@ -1,4 +1,5 @@
 import { AnimationElement, Elements, scope } from '/static/js/util/animation.js'
+import { withResolvers } from '/static/js/util/promise.js'
 
 import { Scene } from '/static/js/scene.js'
 import { Route } from '/static/js/route.js'
@@ -250,6 +251,7 @@ export class ArchiveScene extends Scene {
   }
 
   async new(Animations, fromScene) {
+    document.title = '归档'
     if (fromScene) {
       await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
       await fromScene.dispose()
@@ -437,44 +439,18 @@ export class ArchiveScene extends Scene {
         const linkElement = postTitle.element.querySelector('a')
         linkElement.addEventListener('click', ev => {
           ev.preventDefault()
+          linkElement.blur()
           const url = ev.target.getAttribute('href')
 
-          // 收集过渡所需的数据并存储到当前场景实例
-          const rect = postElement.element.getBoundingClientRect()
-          const titleRect = postTitle.element.getBoundingClientRect()
-          const containerRect = container.element.getBoundingClientRect()
-          this.transitionContext = {
-            postElement: postElement.element,
-            postTitle: postTitle.element,
-            metadata: metadata.element,
-            containerRect: {
-              top: containerRect.top,
-              left: containerRect.left,
-              width: containerRect.width,
-              height: containerRect.height
-            },
-            rect: {
-              top: rect.top,
-              left: rect.left,
-              width: rect.width,
-              height: rect.height
-            },
-            titleRect: {
-              top: titleRect.top,
-              left: titleRect.left,
-              width: titleRect.width,
-              height: titleRect.height
-            },
-            postData: {
-              name: post.name,
-              author: post.author,
-              time: post.time,
-              category: post.category,
-              tag: post.tag
-            }
-          }
-
-          Route.instance.handleURL(url)
+          // 在 archive 侧执行过渡动画
+          this.performTransitionAnimation(
+            postElement,
+            postTitle,
+            metadata,
+            post,
+            container,
+            url
+          )
         })
 
         // 在文章之间添加分隔线（除了最后一篇）
@@ -699,6 +675,171 @@ export class ArchiveScene extends Scene {
     await Animations.fadein(authorFilterGroup, 150)
     await Animations.fadein(categoryFilterGroup, 150)
     await Animations.fadein(tagFilterGroup, 150)
+  }
+
+  /**
+   * 在 archive 侧执行过渡动画，然后导航到 blog
+   */
+  async performTransitionAnimation(
+    postElement,
+    postTitle,
+    metadata,
+    post,
+    container,
+    url
+  ) {
+    // 创建一个 Promise 用于等待 blog 场景准备好接管
+    const transitionReady = withResolvers()
+
+    // 获取所有文章元素
+    const allPosts = Array.from(
+      this.main.querySelectorAll('.blog-archive-post')
+    )
+    const otherPosts = allPosts.filter(el => el !== postElement.element)
+
+    // 获取分页控件
+    const pagination = this.main.querySelector('.blog-archive-pagination')
+
+    // 计算位置信息
+    const rect = postElement.element.getBoundingClientRect()
+    const containerRect = container.element.getBoundingClientRect()
+    const mainRect = this.main.getBoundingClientRect()
+    const scrollTop = this.main.parentElement.scrollTop
+
+    // 计算需要移动的距离
+    const targetTop = -26
+    const currentTop1 = rect.top - mainRect.top + scrollTop
+    const currentTop2 = rect.top - containerRect.top + scrollTop
+    const translateDistance1 = targetTop - currentTop1
+    const translateDistance2 = targetTop - currentTop2
+
+    // 计算标题的目标大小（postTitle.element 本身就是 h2 元素）
+    const currentTitleSize = parseFloat(
+      getComputedStyle(postTitle.element).fontSize
+    )
+    const targetTitleSize = currentTitleSize * (2.0 / 1.8)
+
+    // 创建 loading-icon（但暂不添加到 DOM）
+    const loadingIcon = Elements.div().class('loading-icon').hide()
+
+    // 先设置 transitionContext，让 blog 可以立即访问
+    this.transitionContext = {
+      postElement: postElement.element,
+      postTitle: postTitle.element,
+      metadata: metadata.element,
+      loadingIcon: loadingIcon.element,
+      transitionReady,
+      postData: {
+        name: post.name,
+        author: post.author,
+        time: post.time,
+        category: post.category,
+        tag: post.tag
+      }
+    }
+
+    // 同时开始加载 blog 页面（与动画并行）
+    Route.instance.handleURL(url)
+
+    // 开始执行动画
+    const animationScope = scope(async Animations => {
+      // 1. 淡出其他文章和分页控件
+      const fadeOutElements = [
+        ...otherPosts.map(el => new AnimationElement(el)),
+        ...Array.from(
+          this.main.querySelectorAll('.blog-archive-separator')
+        ).map(el => new AnimationElement(el))
+      ]
+
+      if (pagination) {
+        fadeOutElements.push(new AnimationElement(pagination))
+      }
+
+      // 同时淡出标题和副标题
+      const archiveTitle = this.main.querySelector('.blog-archive-title')
+      const archiveSubtitle = this.main.querySelector('.blog-archive-subtitle')
+      if (archiveTitle) fadeOutElements.push(new AnimationElement(archiveTitle))
+      if (archiveSubtitle)
+        fadeOutElements.push(new AnimationElement(archiveSubtitle))
+
+      // 淡出侧边栏
+      const sidebarElements = Array.from(this.sidebar.children).map(
+        el => new AnimationElement(el)
+      )
+
+      // 并行执行淡出动画
+      Promise.all([
+        ...fadeOutElements.map(el => Animations.fadeout(el, 300)),
+        ...sidebarElements.map(el => Animations.fadeout(el, 300))
+      ]).then(() => {
+        sidebarElements.forEach(el => el.element.remove())
+        fadeOutElements.forEach(el => {
+          if (el.element !== postElement.element)
+            el.element.style.visibility = 'hidden'
+        })
+      })
+
+      // 2. 将选中的文章元素移动到顶部
+      const postElem = new AnimationElement(postElement.element)
+      const titleElem = new AnimationElement(postTitle.element)
+
+      postElem.element.style.transform = `translate(-15px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
+      titleElem.element.style.fontSize = `${targetTitleSize}px`
+      titleElem.element.style.marginBottom = '0.69em'
+
+      await Promise.all([
+        // 使用 translateY 移动整个文章块
+        Animations.animate(
+          postElem,
+          [
+            { transform: 'translate(0,0)' },
+            {
+              transform: `translate(-15px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
+            }
+          ],
+          {
+            duration: 500,
+            easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+          }
+        ),
+        // 调整标题大小
+        Animations.animate(
+          titleElem,
+          [
+            { fontSize: `${currentTitleSize}px` },
+            { fontSize: `${targetTitleSize}px` }
+          ],
+          {
+            duration: 500,
+            easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+          }
+        ),
+        // 调整 metadata 的 margin-bottom
+        Animations.animate(
+          titleElem,
+          [{ marginBottom: '0.5em' }, { marginBottom: '0.69em' }],
+          {
+            duration: 500,
+            easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+          }
+        )
+      ])
+
+      // 3. 移动动画完成后，添加 loading-icon 到 DOM 并显示
+      // 由于 postElement 使用 translateY 向上移动，loading-icon 需要向下偏移来补偿
+      const loadingOffset = -(scrollTop
+        ? translateDistance2
+        : translateDistance1)
+      loadingIcon.element.style.transform = `translateY(${loadingOffset}px)`
+      postElement.element.appendChild(loadingIcon.element)
+      await Animations.fadein(loadingIcon, 200)
+
+      // 4. 通知过渡准备完成
+      transitionReady.resolve()
+    })
+
+    // 等待动画完成
+    await animationScope.promise
   }
 
   async dispose() {

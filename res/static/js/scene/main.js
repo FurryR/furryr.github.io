@@ -255,6 +255,7 @@ export class MainScene extends Scene {
   }
 
   async new(Animations, fromScene) {
+    document.title = '熊谷凌的博客'
     if (fromScene) {
       await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
       await fromScene.dispose()

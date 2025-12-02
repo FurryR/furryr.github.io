@@ -92,7 +92,7 @@ article {
   width: 100%;
   height: calc(100vh - 200px);
   box-sizing: border-box;
-  line-height: 1em;
+  line-height: 1.7em;
   overflow-y: scroll;
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
@@ -234,7 +234,7 @@ body::after {
   }
   100% {
     opacity: 1;
-    line-height: 0.9em;
+    line-height: 1.7em;
   }
 }
 
