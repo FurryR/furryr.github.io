@@ -30,16 +30,7 @@ body {
     display: none;
   }
   @media (pointer: coarse) {
-    .blog-main {
-      overflow-y: visible;
-      overflow-x: hidden;
-      height: auto;
-      width: 100%;
-      margin-right: 0;
-    }
-    .blog-page {
-      height: auto;
-    }
+    /** TODO */
   }
 }
 
@@ -186,6 +177,9 @@ body {
   height: calc(
     100vh - 200px
   ); /* Adjust height to fill the page minus header and footer */
+  height: calc(
+    100dvh - 200px
+  ); /* Use dynamic viewport height for mobile browsers with address bar */
 }
 
 .blog-main {

@@ -85,7 +85,10 @@ export class Scene {
   async new(scope, fromScene) {
     throw new Error('Not implemented')
   }
-  async dispose() {
+  /**
+   * @returns {Promise<void> | void}
+   */
+  dispose() {
     throw new Error('Not implemented')
   }
 }

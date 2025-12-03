@@ -485,7 +485,7 @@ export class MainScene extends Scene {
     await Animations.fadein(sidebarAvatar, 200)
   }
 
-  async dispose() {
+  dispose() {
     this.effect.dispose()
     while (this.main.firstChild) {
       this.main.removeChild(this.main.firstChild)

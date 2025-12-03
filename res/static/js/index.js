@@ -179,7 +179,7 @@ function initalizeMain() {
               .with('alt', 'Telegram')
           ])
             .with('target', '_blank')
-            .with('href', 'https://t.me/DevRinOwO')
+            .with('href', 'https://t.me/im_furryr')
             .hide()),
           (twitter = Elements.a([
             Elements.img()

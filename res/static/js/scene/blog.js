@@ -182,11 +182,6 @@ export class BlogScene extends Scene {
   }
 
   async new(Animations, fromScene) {
-    if (fromScene && fromScene.constructor.name !== 'ArchiveScene') {
-      await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
-      await fromScene.dispose()
-    }
-
     this.effect.use(() => {
       const style = document.createElement('style')
       style.textContent = css
@@ -202,6 +197,11 @@ export class BlogScene extends Scene {
     const transitionContext = isArchiveTransition
       ? fromScene.transitionContext
       : null
+
+    if (fromScene && !isArchiveTransition) {
+      await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
+      await fromScene.dispose()
+    }
 
     let loadingIcons
     let title, time, category, tag, author, metadata
@@ -224,42 +224,37 @@ export class BlogScene extends Scene {
       //   loadingIconElement.parentNode.removeChild(loadingIconElement)
       // }
 
-      // 直接淡出 loadingIcon
-
-      const loadingIcon = new AnimationElement(transitionContext.loadingIcon)
-      await Animations.fadeout(loadingIcon, 200)
-
       // 保存 postData 用于后续创建元素
-      const postData = transitionContext.postData
+      // const postData = transitionContext.postData
 
       // 先销毁 fromScene（这会清空 main 和 sidebar）
-      await fromScene.dispose()
+      // await fromScene.dispose()
 
       // dispose 之后再创建新元素
-      const authors = postData.author.split(',').map(v => v.trim())
+      // const authors = postData.author.split(',').map(v => v.trim())
 
-      author =
-        authors.length > 1
-          ? Elements.span([
-              Elements.span().content(authors[0]),
-              Elements.span().content('等').class('blog-post-author-etc')
-            ])
-              .class('blog-post-author')
-              .with('title', authors.join('、'))
-          : Elements.span().content(authors[0]).class('blog-post-author')
+      // author =
+      //   authors.length > 1
+      //     ? Elements.span([
+      //         Elements.span().content(authors[0]),
+      //         Elements.span().content('等').class('blog-post-author-etc')
+      //       ])
+      //         .class('blog-post-author')
+      //         .with('title', authors.join('、'))
+      //     : Elements.span().content(authors[0]).class('blog-post-author')
 
-      metadata = Elements.div([
-        (title = Elements.h1().content(postData.name).class('blog-post-title')),
-        author,
-        (time = Elements.span().content(postData.time).class('blog-post-time')),
-        (category = Elements.span()
-          .content(postData.category)
-          .class('blog-post-category')),
-        (tag = Elements.span().content(postData.tag).class('blog-post-tag'))
-      ]).class('blog-post-metadata')
+      // metadata = Elements.div([
+      //   (title = Elements.h1().content(postData.name).class('blog-post-title')),
+      //   author,
+      //   (time = Elements.span().content(postData.time).class('blog-post-time')),
+      //   (category = Elements.span()
+      //     .content(postData.category)
+      //     .class('blog-post-category')),
+      //   (tag = Elements.span().content(postData.tag).class('blog-post-tag'))
+      // ]).class('blog-post-metadata')
 
-      // 添加新的 metadata 到 main
-      this.main.appendChild(metadata.element)
+      // // 添加新的 metadata 到 main
+      // this.main.appendChild(metadata.element)
     }
 
     let configuration
@@ -267,6 +262,15 @@ export class BlogScene extends Scene {
       configuration = await this.configuration
     } catch {
       return
+    }
+
+    if (isArchiveTransition) {
+      // 直接淡出 loadingIcon
+
+      const loadingIcon = new AnimationElement(transitionContext.loadingIcon)
+      await Animations.fadeout(loadingIcon, 200)
+
+      fromScene.dispose() // dispose() is always synchronous here
     }
     document.title = configuration.title
 
@@ -310,42 +314,50 @@ export class BlogScene extends Scene {
     const catalog = generateCatalog(article)
 
     // 如果不是 archive 过渡，则从配置创建 metadata
-    if (!isArchiveTransition) {
-      author =
-        configuration.author.length > 1
-          ? Elements.span([
-              Elements.span().content(configuration.author[0]),
-              Elements.span().content('等').class('blog-post-author-etc')
-            ])
-              .class('blog-post-author')
-              .with('title', configuration.author.join('、'))
-              .hide()
-          : Elements.span()
-              .content(configuration.author[0])
-              .class('blog-post-author')
-              .hide()
+    // if (!isArchiveTransition) {
+    author =
+      configuration.author.length > 1
+        ? Elements.span([
+            Elements.span().content(configuration.author[0]),
+            Elements.span().content('等').class('blog-post-author-etc')
+          ])
+            .class('blog-post-author')
+            .with('title', configuration.author.join('、'))
+            .hide()
+        : Elements.span()
+            .content(configuration.author[0])
+            .class('blog-post-author')
+            .hide()
 
-      metadata = Elements.div([
-        (title = Elements.h1()
-          .content(configuration.title)
-          .class('blog-post-title')
-          .hide()),
-        author,
-        (time = Elements.span()
-          .content(configuration.time.toISOString())
-          .class('blog-post-time')
-          .hide()),
-        (category = Elements.span()
-          .content(configuration.category)
-          .class('blog-post-category')
-          .hide()),
-        (tag = Elements.span()
-          .content(configuration.tags.join(' '))
-          .class('blog-post-tag')
-          .hide())
-      ]).class('blog-post-metadata')
+    metadata = Elements.div([
+      (title = Elements.h1()
+        .content(configuration.title)
+        .class('blog-post-title')
+        .hide()),
+      author,
+      (time = Elements.span()
+        .content(configuration.time.toISOString())
+        .class('blog-post-time')
+        .hide()),
+      (category = Elements.span()
+        .content(configuration.category)
+        .class('blog-post-category')
+        .hide()),
+      (tag = Elements.span()
+        .content(configuration.tags.join(' '))
+        .class('blog-post-tag')
+        .hide())
+    ]).class('blog-post-metadata')
 
-      this.main.appendChild(metadata.element)
+    this.main.appendChild(metadata.element)
+    // }
+    if (isArchiveTransition) {
+      // Archive 过渡：直接显示标题内容
+      title.show()
+      author.show()
+      time.show()
+      category.show()
+      tag.show()
     }
 
     const articleElementAnimation = withResolvers()
@@ -402,6 +414,7 @@ export class BlogScene extends Scene {
 
     if (!isArchiveTransition) {
       // 标准过渡：显示标题动画
+      // TODO: 等待 Utterances
       await Animations.fadeout(loadingIcons.main, 200)
       loadingIcons.main.element.remove()
       await Animations.fadein(title, 200)
@@ -481,8 +494,14 @@ export class BlogScene extends Scene {
     }
   }
 
-  async dispose() {
+  dispose() {
     this.effect.dispose()
+    while (this.main.firstChild) {
+      this.main.removeChild(this.main.firstChild)
+    }
+    while (this.sidebar.firstChild) {
+      this.sidebar.removeChild(this.sidebar.firstChild)
+    }
   }
 }
 

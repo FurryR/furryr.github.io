@@ -437,7 +437,14 @@ export class ArchiveScene extends Scene {
 
         // 为链接添加路由处理
         const linkElement = postTitle.element.querySelector('a')
+        let clicked = false
         linkElement.addEventListener('click', ev => {
+          if (clicked) return // 防抖
+          clicked = true
+
+          // 禁用链接的 hover 效果，但保留选中/复制功能
+          linkElement.style.pointerEvents = 'none'
+
           ev.preventDefault()
           linkElement.blur()
           const url = ev.target.getAttribute('href')
@@ -707,11 +714,18 @@ export class ArchiveScene extends Scene {
     const scrollTop = this.main.parentElement.scrollTop
 
     // 计算需要移动的距离
-    const targetTop = -26
+    const targetTop = -27
     const currentTop1 = rect.top - mainRect.top + scrollTop
     const currentTop2 = rect.top - containerRect.top + scrollTop
     const translateDistance1 = targetTop - currentTop1
     const translateDistance2 = targetTop - currentTop2
+
+    // 计算需要移动的 x 距离
+    const targetLeft = mainRect.left
+    // 当前 x 位置：文章元素左边缘
+    const currentLeft = rect.left
+    // 需要移动的 x 距离
+    const translateX = targetLeft - currentLeft
 
     // 计算标题的目标大小（postTitle.element 本身就是 h2 元素）
     const currentTitleSize = parseFloat(
@@ -783,7 +797,7 @@ export class ArchiveScene extends Scene {
       const postElem = new AnimationElement(postElement.element)
       const titleElem = new AnimationElement(postTitle.element)
 
-      postElem.element.style.transform = `translate(-15px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
+      postElem.element.style.transform = `translate(${translateX}px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
       titleElem.element.style.fontSize = `${targetTitleSize}px`
       titleElem.element.style.marginBottom = '0.69em'
 
@@ -794,7 +808,7 @@ export class ArchiveScene extends Scene {
           [
             { transform: 'translate(0,0)' },
             {
-              transform: `translate(-15px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
+              transform: `translate(${translateX}px, ${scrollTop ? translateDistance2 : translateDistance1}px)`
             }
           ],
           {
@@ -830,7 +844,7 @@ export class ArchiveScene extends Scene {
       const loadingOffset = -(scrollTop
         ? translateDistance2
         : translateDistance1)
-      loadingIcon.element.style.transform = `translateY(${loadingOffset}px)`
+      loadingIcon.element.style.transform = `translate(100%, ${loadingOffset}px)`
       postElement.element.appendChild(loadingIcon.element)
       await Animations.fadein(loadingIcon, 200)
 
@@ -842,7 +856,7 @@ export class ArchiveScene extends Scene {
     await animationScope.promise
   }
 
-  async dispose() {
+  dispose() {
     this.effect.dispose()
     while (this.main.firstChild) {
       this.main.removeChild(this.main.firstChild)
