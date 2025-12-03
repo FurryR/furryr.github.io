@@ -209,7 +209,7 @@ function initalizeMain() {
             height: '0'
           },
           {
-            height: 'calc(100vh - 200px)'
+            height: CSS.supports('height', '100dvh') ? 'calc(100dvh - 200px)' : 'calc(100vh - 200px)'
           }
         ],
         {
