@@ -84,9 +84,9 @@ async function initalizeHeader() {
             .hide()),
           (contact = Elements.li([
             Elements.a()
-              .content('联系方式')
+              .content('关于我')
               .class('blog-nav-links-item-a')
-              .with('href', '/contact.html')
+              .with('href', '/about.html')
           ])
             .class('blog-nav-links-item-last')
             .hide()),
@@ -209,7 +209,9 @@ function initalizeMain() {
             height: '0'
           },
           {
-            height: CSS.supports('height', '100dvh') ? 'calc(100dvh - 200px)' : 'calc(100vh - 200px)'
+            height: CSS.supports('height', '100dvh')
+              ? 'calc(100dvh - 200px)'
+              : 'calc(100vh - 200px)'
           }
         ],
         {

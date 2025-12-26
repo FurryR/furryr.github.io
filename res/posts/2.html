@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>波尔 bot 到 MuNET 数据迁移工具</title>
+    <meta
+      name="description"
+      content="可以在这里转换波尔 bot 的数据，到 MuNET 引继游玩噢。"
+    />
+    <blog>
+      <author>熊谷 凌</author>
+      <time>2025-12-26T15:31:47.748Z</time>
+      <category>maimai</category>
+      <tag>maimai</tag>
+    </blog>
+    <script src="/static/js/index.js" type="module" async defer></script>
+    <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
+    <noscript
+      ><link rel="stylesheet" href="/static/css/noscript/blog.css"
+    /></noscript>
+  </head>
+  <body>
+    <article>
+      <iframe
+        src="/frame/munet.html"
+        style="width: 100%; border: none"
+        onload="const frame = this; const resize = () => { frame.style.height = frame.contentWindow.document.documentElement.scrollHeight + 'px'; }; resize(); new MutationObserver(resize).observe(frame.contentWindow.document.body, { childList: true, subtree: true, attributes: true }); frame.contentWindow.addEventListener('resize', resize);"
+      ></iframe>
+    </article>
+  </body>
+</html>

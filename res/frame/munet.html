@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>波尔数据 -> MuNET 数据转换工具</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="您可以使用此页面将波尔 bot 导出的数据转换为 MuNET 可用的数据格式。"
+    />
+    <meta name="keywords" content="MuNET, 波尔, 数据转换, 工具" />
+    <meta name="author" content="FurryR" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/akar-icons-fonts@1.1.22/src/css/akar-icons.min.css"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Fira Code', Consolas, 'Courier New', monospace;
+        background: transparent;
+        color: black;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2em 1em;
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+
+      /* Splash Screen */
+      #splash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition:
+          opacity 0.4s ease,
+          visibility 0.4s ease;
+      }
+
+      #splash.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .loading-dots {
+        display: block;
+        width: 0px;
+        height: 0px;
+        position: relative;
+      }
+
+      .loading-dots::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        background-color: transparent;
+        box-shadow:
+          15px 0 0 0 rgba(0, 0, 0, 0.2),
+          30px 0 0 0 rgba(0, 0, 0, 0.2),
+          45px 0 0 0 rgba(0, 0, 0, 0.2),
+          60px 0 0 0 rgba(0, 0, 0, 0.2);
+        animation: flash-dots 1.2s infinite;
+      }
+
+      @keyframes flash-dots {
+        0%,
+        18%,
+        100% {
+          box-shadow:
+            15px 0 0 0 rgba(0, 0, 0, 0.2),
+            30px 0 0 0 rgba(0, 0, 0, 0.2),
+            45px 0 0 0 rgba(0, 0, 0, 0.2),
+            60px 0 0 0 rgba(0, 0, 0, 0.2);
+        }
+        22%,
+        30% {
+          box-shadow:
+            15px 0 0 0 black,
+            30px 0 0 0 rgba(0, 0, 0, 0.2),
+            45px 0 0 0 rgba(0, 0, 0, 0.2),
+            60px 0 0 0 rgba(0, 0, 0, 0.2);
+        }
+        34%,
+        42% {
+          box-shadow:
+            15px 0 0 0 rgba(0, 0, 0, 0.2),
+            30px 0 0 0 black,
+            45px 0 0 0 rgba(0, 0, 0, 0.2),
+            60px 0 0 0 rgba(0, 0, 0, 0.2);
+        }
+        46%,
+        54% {
+          box-shadow:
+            15px 0 0 0 rgba(0, 0, 0, 0.2),
+            30px 0 0 0 rgba(0, 0, 0, 0.2),
+            45px 0 0 0 black,
+            60px 0 0 0 rgba(0, 0, 0, 0.2);
+        }
+        58%,
+        66% {
+          box-shadow:
+            15px 0 0 0 rgba(0, 0, 0, 0.2),
+            30px 0 0 0 rgba(0, 0, 0, 0.2),
+            45px 0 0 0 rgba(0, 0, 0, 0.2),
+            60px 0 0 0 black;
+        }
+      }
+
+      /* Header */
+      .header {
+        margin-bottom: 2em;
+      }
+
+      h1 {
+        font-size: 1.5em;
+        color: #1d5685;
+        margin-bottom: 0.3em;
+        font-weight: normal;
+      }
+
+      h1 i {
+        font-size: 0.9em;
+        margin-right: 0.3em;
+      }
+
+      .subtitle {
+        color: gray;
+        font-size: 0.9em;
+      }
+
+      /* Main Section */
+      .main-section {
+        border: 1px solid lightgray;
+        border-radius: 4px;
+        padding: 1.5em;
+        margin-bottom: 1em;
+        background: white;
+        position: relative;
+      }
+
+      .section-title {
+        font-size: 1em;
+        margin-bottom: 1em;
+        color: #777;
+        font-weight: normal;
+      }
+
+      /* Upload Area */
+      .upload-area {
+        border: 2px dashed #ccc;
+        border-radius: 4px;
+        padding: 3em 2em;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #fafafa;
+      }
+
+      .upload-area:hover {
+        border-color: #999;
+        background: #f5f5f5;
+      }
+
+      .upload-area.drag-over {
+        border-color: #666;
+        background: #f0f0f0;
+      }
+
+      .upload-icon {
+        font-size: 3em;
+        color: #999;
+        margin-bottom: 0.5em;
+        transition: color 0.2s ease;
+      }
+
+      .upload-area:hover .upload-icon {
+        color: #666;
+      }
+
+      .upload-text {
+        font-size: 1em;
+        color: #777;
+        margin-bottom: 0.3em;
+      }
+
+      .upload-hint {
+        font-size: 0.85em;
+        color: #999;
+      }
+
+      input[type='file'] {
+        display: none;
+      }
+
+      /* Messages Area */
+      .messages {
+        border: 1px solid lightgray;
+        border-radius: 4px;
+        background: #fafafa;
+        padding: 1em;
+        min-height: 8em;
+        max-height: 20em;
+        overflow-y: auto;
+        font-size: 0.85em;
+        line-height: 1.5;
+        display: none;
+        scrollbar-width: thin;
+        scrollbar-color: #ccc #f5f5f5;
+      }
+
+      .messages.show {
+        display: block;
+      }
+
+      .messages::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .messages::-webkit-scrollbar-track {
+        background: #f5f5f5;
+      }
+
+      .messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+      }
+
+      .messages::-webkit-scrollbar-thumb:hover {
+        background: #999;
+      }
+
+      .message {
+        margin-bottom: 0.5em;
+        padding: 0.5em;
+        border-left: 3px solid;
+        animation: messageIn 0.2s ease;
+      }
+
+      @keyframes messageIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .message.info {
+        border-color: #999;
+        background: #f5f5f5;
+        color: #555;
+      }
+
+      .message.success {
+        border-color: #999;
+        background: #f5f5f5;
+        color: #555;
+      }
+
+      .message.error {
+        border-color: #999;
+        background: #f5f5f5;
+        color: #555;
+      }
+
+      /* Download Button */
+      .download-btn {
+        width: 100%;
+        padding: 0.8em;
+        background: #333;
+        color: white;
+        border: 1px solid #333;
+        border-radius: 4px;
+        font-family: 'Fira Code', Consolas, 'Courier New', monospace;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: none;
+      }
+
+      .download-btn.show {
+        display: block;
+      }
+
+      .download-btn:hover {
+        background: #000;
+        border-color: #000;
+      }
+
+      .download-btn:active {
+        background: #555;
+      }
+
+      .download-btn i {
+        margin-right: 0.5em;
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 2em;
+        padding-top: 1em;
+        border-top: 1px solid lightgray;
+        text-align: center;
+        color: gray;
+        font-size: 0.85em;
+      }
+
+      .footer a {
+        color: gray;
+        text-decoration: none;
+        transition: color 0.2s ease;
+        position: relative;
+      }
+
+      .footer a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 100%;
+        height: 1px;
+        background: gray;
+        transform: scaleX(0);
+        transition: transform 0.2s ease;
+      }
+
+      .footer a:hover {
+        color: #333;
+      }
+
+      .footer a:hover::after {
+        transform: scaleX(1);
+      }
+
+      .footer-divider {
+        margin: 0 0.5em;
+        opacity: 0.5;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        body {
+          padding: 1em 0.5em;
+        }
+
+        .main-section {
+          padding: 1em;
+        }
+
+        .upload-area {
+          padding: 2em 1em;
+        }
+
+        .upload-icon {
+          font-size: 2.5em;
+        }
+
+        h1 {
+          font-size: 1.3em;
+        }
+      }
+
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.1em;
+        }
+
+        .upload-text {
+          font-size: 0.9em;
+        }
+
+        .upload-hint {
+          font-size: 0.8em;
+        }
+
+        .section-title {
+          font-size: 0.9em;
+        }
+      }
+
+      /* Dark Mode Support */
+      @media (prefers-color-scheme: dark) {
+        .loading-dots::after {
+          box-shadow:
+            15px 0 0 0 rgba(255, 255, 255, 0.2),
+            30px 0 0 0 rgba(255, 255, 255, 0.2),
+            45px 0 0 0 rgba(255, 255, 255, 0.2),
+            60px 0 0 0 rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes flash-dots {
+          0%,
+          18%,
+          100% {
+            box-shadow:
+              15px 0 0 0 rgba(255, 255, 255, 0.2),
+              30px 0 0 0 rgba(255, 255, 255, 0.2),
+              45px 0 0 0 rgba(255, 255, 255, 0.2),
+              60px 0 0 0 rgba(255, 255, 255, 0.2);
+          }
+          22%,
+          30% {
+            box-shadow:
+              15px 0 0 0 white,
+              30px 0 0 0 rgba(255, 255, 255, 0.2),
+              45px 0 0 0 rgba(255, 255, 255, 0.2),
+              60px 0 0 0 rgba(255, 255, 255, 0.2);
+          }
+          34%,
+          42% {
+            box-shadow:
+              15px 0 0 0 rgba(255, 255, 255, 0.2),
+              30px 0 0 0 white,
+              45px 0 0 0 rgba(255, 255, 255, 0.2),
+              60px 0 0 0 rgba(255, 255, 255, 0.2);
+          }
+          46%,
+          54% {
+            box-shadow:
+              15px 0 0 0 rgba(255, 255, 255, 0.2),
+              30px 0 0 0 rgba(255, 255, 255, 0.2),
+              45px 0 0 0 white,
+              60px 0 0 0 rgba(255, 255, 255, 0.2);
+          }
+          58%,
+          66% {
+            box-shadow:
+              15px 0 0 0 rgba(255, 255, 255, 0.2),
+              30px 0 0 0 rgba(255, 255, 255, 0.2),
+              45px 0 0 0 rgba(255, 255, 255, 0.2),
+              60px 0 0 0 white;
+          }
+        }
+
+        h1 {
+          color: #999;
+        }
+
+        .main-section {
+          background: #333;
+          border-color: #555;
+        }
+
+        .upload-area {
+          background: #2a2a2a;
+          border-color: #555;
+        }
+
+        .upload-area:hover {
+          background: #333;
+          border-color: #666;
+        }
+
+        .upload-area.drag-over {
+          background: #3a3a3a;
+          border-color: #777;
+        }
+
+        .upload-icon {
+          color: #888;
+        }
+
+        .upload-area:hover .upload-icon {
+          color: #aaa;
+        }
+
+        .upload-text {
+          color: #ddd;
+        }
+
+        .upload-hint {
+          color: #777;
+        }
+
+        .messages {
+          background: #2a2a2a;
+          border-color: #555;
+        }
+
+        .messages::-webkit-scrollbar-track {
+          background: #252525;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+          background: #555;
+        }
+
+        .messages::-webkit-scrollbar-thumb:hover {
+          background: #777;
+        }
+
+        .message.info,
+        .message.success,
+        .message.error {
+          background: #333;
+          color: #aaa;
+        }
+
+        .download-btn {
+          background: #555;
+          color: #ddd;
+          border-color: #555;
+        }
+
+        .download-btn:hover {
+          background: #666;
+          border-color: #666;
+        }
+
+        .download-btn:active {
+          background: #444;
+        }
+
+        .footer {
+          border-color: #555;
+          color: #888;
+        }
+
+        .footer a {
+          color: #888;
+        }
+
+        .footer a:hover {
+          color: #aaa;
+        }
+
+        .footer a::after {
+          background: #888;
+        }
+      }
+
+      /* Noscript */
+      noscript {
+        display: block;
+        padding: 1em;
+        background: #c21c2c;
+        color: white;
+        text-align: center;
+        border-radius: 4px;
+        margin: 1em 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Splash Screen -->
+    <div id="splash">
+      <div class="loading-dots"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="ai-arrow-cycle"></i>迁移到 MuNET</h1>
+      <p class="subtitle">
+        您可以将自己于波尔 bot 备份的数据于此页面迁移到 MuNET 进行引继游玩。
+      </p>
+      <p class="subtitle">※ 以下数据无法进行迁移：</p>
+      <p class="subtitle">1. 用户ID</p>
+      <p class="subtitle">2. 设定中的头像/收藏品设置</p>
+      <p class="subtitle">3. 游玩次数</p>
+      <p class="subtitle">4. 友人对战分数</p>
+      <p class="subtitle">另外，无法验证的游戏数据文件可能会被拒绝。</p>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="main-section">
+      <div class="section-title">上传数据文件</div>
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon"><i class="ai-cloud-upload"></i></div>
+        <div class="upload-text">拖放 JSON 文件到这里</div>
+        <div class="upload-hint">或点击此处选择文件</div>
+      </div>
+      <input type="file" id="fileInput" accept=".json,application/json" />
+    </div>
+
+    <!-- Messages Section -->
+    <div class="main-section">
+      <div class="section-title">转换状态</div>
+      <div class="messages" id="messages"></div>
+    </div>
+
+    <!-- Download Section -->
+    <div class="main-section">
+      <div class="section-title">下载转换结果</div>
+      <button class="download-btn" id="downloadBtn">
+        <i class="ai-download"></i>下载转换后的数据
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      © 2025
+      <a
+        href="https://furryr.github.io"
+        target="_blank"
+        rel="noopener noreferrer"
+        >FurryR</a
+      >
+      <span class="footer-divider">|</span>
+      <a
+        href="https://github.com/FurryR"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitHub</a
+      >
+    </div>
+
+    <noscript>请启用 JavaScript 后使用此页面。</noscript>
+
+    <script type="module">
+      import forge from 'https://cdn.jsdelivr.net/npm/node-forge@1.3.3/+esm'
+      const PUBLIC_PEM = `-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA4REoDrVygCgZc3YbQQA4
+VZlZXcsPxuQ1dh0bkP45URewr4QkSSLJk8EBmVhOhOogHiAhCcNjQ/pNefuuccRO
+aR2Qw2Q7S0V9TAlQbeN8DqL3tk3FojJRVG6RJGVtTkfgWxpRT/fnLm+AwMLpUJ8R
+PlcyONCB+IauKLb6i8JhZ5v0z2kcfjmGx5osdyngH0Q1gC1bg7N2ubHZx2lI+v7e
+LFEzZNw0hqEKMYStz6xy95u/y4eUX9n6CoX3oZEqBU6aOSJsOQo0kaEO0v/D8iWK
+3zKEAstyg10TQgLBgVQjf8WJ/1bA2WnSryLzX8bv2fBCYcdPlShpNxysVWMQhU67
+5cis3RxN4zcx4V363316DbBZTuobJBsNQF15Popu2jBUpsiULDqWtZj6hekA9FTl
+4n5ZdD2NJ5CB3DwNkraoayDwCyrBXjjpivKCNqWdiEN+0vz+EZdNCTSr5BtkcM+Q
+ZAXVH6NwZSACMAVagZsFM5mYJRD/Egai7SKUpDJmplvJ9J2t5kv4+onCqayHiYjN
+lAj7RqG7UhEx+qwD9R5kAoi2YFkWquWlaM+SYqs/83AwVApOfT1nDLrpk811EnlL
+C8pB2FiHwk6focaDuWIwfIhWBHZmR+/DUnpgPfFISoL8dL51CF1TH8QULDQAfQBT
+Gx+Uy47mHcEiG4DVUtsKG4UCAwEAAQ==
+-----END PUBLIC KEY-----`
+      // State management
+      let convertedData = null
+
+      // DOM elements
+      const splash = document.getElementById('splash')
+      const uploadArea = document.getElementById('uploadArea')
+      const fileInput = document.getElementById('fileInput')
+      const messages = document.getElementById('messages')
+      const downloadBtn = document.getElementById('downloadBtn')
+
+      // Initialize app
+      function init() {
+        // Hide splash screen after a short delay
+        setTimeout(() => {
+          splash.classList.add('hidden')
+        }, 600)
+
+        // Setup event listeners
+        setupEventListeners()
+      }
+
+      // Setup all event listeners
+      function setupEventListeners() {
+        // Upload area click
+        uploadArea.addEventListener('click', () => {
+          fileInput.click()
+        })
+
+        // File input change
+        fileInput.addEventListener('change', e => {
+          const file = e.target.files[0]
+          if (file) {
+            handleFile(file)
+          }
+        })
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', e => {
+          e.preventDefault()
+          uploadArea.classList.add('drag-over')
+        })
+
+        uploadArea.addEventListener('dragleave', () => {
+          uploadArea.classList.remove('drag-over')
+        })
+
+        uploadArea.addEventListener('drop', e => {
+          e.preventDefault()
+          uploadArea.classList.remove('drag-over')
+
+          const file = e.dataTransfer.files[0]
+          if (file) {
+            handleFile(file)
+          }
+        })
+
+        // Download button
+        downloadBtn.addEventListener('click', () => {
+          if (convertedData) {
+            downloadData(convertedData)
+          }
+        })
+      }
+
+      // Handle file upload
+      async function handleFile(file) {
+        clearMessages()
+        downloadBtn.classList.remove('show')
+        convertedData = null
+
+        // Validate file type
+        if (!file.name.endsWith('.json')) {
+          addMessage('error', '错误：请上传 JSON 文件')
+          return
+        }
+
+        addMessage('info', `正在读取文件: ${file.name}`)
+
+        try {
+          const text = await file.text()
+          const data = JSON.parse(text)
+
+          addMessage('success', '文件读取成功')
+          addMessage('info', '开始转换数据...')
+
+          // Convert data
+          const result = convertData(data)
+
+          if (result.success) {
+            convertedData = result.data
+            addMessage('success', `转换完成。`)
+            downloadBtn.classList.add('show')
+          } else {
+            addMessage('error', `转换失败: ${result.error}`)
+          }
+        } catch (error) {
+          addMessage('error', `错误: ${error.message}`)
+        }
+      }
+
+      // Convert data format (波尔 -> MuNET)
+      function convertData(input) {
+        try {
+          // This is a placeholder conversion logic
+          // You should implement the actual conversion based on the data structure
+
+          if (!input || typeof input !== 'object') {
+            return { success: false, error: '无效的数据格式' }
+          }
+
+          // Example conversion - adjust based on actual data structure
+          let output
+
+          output = transformItem(input)
+
+          return {
+            success: true,
+            data: output
+          }
+        } catch (error) {
+          console.error(error)
+          return {
+            success: false,
+            error: error.message
+          }
+        }
+      }
+
+      function generateAccessCode() {
+        // Secure random 10-digit code generator (0-9)
+        let code = ''
+        const array = new Uint8Array(10)
+        window.crypto.getRandomValues(array)
+        for (let i = 0; i < array.length; i++) {
+          code += (array[i] % 10).toString()
+        }
+        return code
+      }
+
+      // Transform individual item
+      function transformItem(item) {
+        // First verify RSA4096-AES2 signature at `root.signature`
+        const clone = { ...item }
+        delete clone.signature
+        const md = forge.md.sha256.create()
+        md.update(JSON.stringify(clone), 'utf8')
+        const publicKey = forge.pki.publicKeyFromPem(PUBLIC_PEM)
+        const signatureBytes = forge.util.decode64(item.signature)
+        const verified = publicKey.verify(md.digest().bytes(), signatureBytes)
+        if (!verified) {
+          throw new Error('数据签名验证失败')
+        }
+        const data = {
+          userData: {
+            accessCode: generateAccessCode(),
+            userName: item.data.userName,
+            friendCode: '',
+            isNetMember: 1,
+            nameplateId: 0,
+            iconId: 101,
+            trophyId: 0,
+            plateId: 1,
+            titleId: 1,
+            partnerId: 1,
+            frameId: 1,
+            selectMapId: 1,
+            totalAwake: item.data.totalAwake,
+            gradeRating: 0,
+            musicRating: 0,
+            playerRating: 0,
+            highestRating: 0,
+            gradeRank: 0,
+            classRank: 0,
+            courseRank: 0,
+            charaSlot: [101, 102, 103, 104, 105],
+            charaLockSlot: [0, 0, 0, 0, 0],
+            contentBit: 0,
+            playCount: 0,
+            eventWatchedDate: '1970-01-01 08:00:00.0',
+            lastGameId: 'SDEZ',
+            lastRomVersion: '0.00.00',
+            lastDataVersion: '0.00.00',
+            lastLoginDate: '1970-01-01 08:00:00.0',
+            lastPlayDate: '1970-01-01 08:00:00.0',
+            lastPlayCredit: 1,
+            lastPlayMode: 0,
+            lastPlaceId: 291,
+            lastPlaceName: '',
+            lastAllNetId: 0,
+            lastRegionId: 1,
+            lastRegionName: 'W',
+            lastCountryCode: 'JPN',
+            lastSelectEMoney: 0,
+            lastSelectTicket: 0,
+            lastSelectCourse: 0,
+            lastCountCourse: 0,
+            firstGameId: 'SDEZ',
+            firstRomVersion: '0.00.00',
+            firstDataVersion: '0.00.00',
+            firstPlayDate: '1970-01-01 08:00:00.0',
+            compatibleCmVersion: '0.00.00',
+            dailyBonusDate: '1970-01-01 08:00:00.0',
+            dailyCourseBonusDate: '1970-01-01 08:00:00.0',
+            lastPairLoginDate: '1970-01-01 08:00:00.0',
+            lastTrialPlayDate: '1970-01-01 08:00:00.0',
+            playVsCount: 0,
+            playSyncCount: 0,
+            winCount: 0,
+            helpCount: 0,
+            comboCount: 0,
+            totalDeluxscore: 0,
+            totalBasicDeluxscore: 0,
+            totalAdvancedDeluxscore: 0,
+            totalExpertDeluxscore: 0,
+            totalMasterDeluxscore: 0,
+            totalReMasterDeluxscore: 0,
+            totalHiscore: 0,
+            totalBasicHighscore: 0,
+            totalAdvancedHighscore: 0,
+            totalExpertHighscore: 0,
+            totalMasterHighscore: 0,
+            totalSync: 0,
+            totalBasicSync: 0,
+            totalAdvancedSync: 0,
+            totalExpertSync: 0,
+            totalMasterSync: 0,
+            totalReMasterSync: 0,
+            totalAchievement: 0,
+            totalBasicAchievement: 0,
+            totalAdvancedAchievement: 0,
+            totalExpertAchievement: 0,
+            totalMasterAchievement: 0,
+            totalReMasterAchievement: 0,
+            playerOldRating: 0,
+            playerNewRating: 0,
+            banState: 0,
+            dateTime: Math.floor(Date.now() / 1000),
+            cmLastEmoneyBrand: 2,
+            cmLastEmoneyCredit: 0,
+            mapStock: 0,
+            point: 0,
+            totalPoint: 0,
+            currentPlayCount: 0,
+            renameCredit: 0
+          },
+          userExtend: item.extend,
+          userOption: item.option,
+          userUdemae: {
+            rate: 0,
+            maxRate: 0,
+            classValue: 0,
+            maxClassValue: 0,
+            totalWinNum: 0,
+            totalLoseNum: 0,
+            maxWinNum: 0,
+            maxLoseNum: 0,
+            winNum: 0,
+            loseNum: 0,
+            npcTotalWinNum: 0,
+            npcTotalLoseNum: 0,
+            npcMaxWinNum: 0,
+            npcMaxLoseNum: 0,
+            npcWinNum: 0,
+            npcLoseNum: 0
+          },
+          mapEncountNpcList: [],
+          userActList: [],
+          userCharacterList: item.character.map(v => {
+            return {
+              characterId: v.characterId,
+              point: v.point,
+              count: 0,
+              level: v.level,
+              nextAwake: 0,
+              nextAwakePercent: 0,
+              favorite: false,
+              awakening: v.awakening,
+              useCount: v.useCount
+            }
+          }),
+          userChargeList: [],
+          userCourseList: [],
+          userFavoriteList: [
+            {
+              itemKind: 1,
+              itemIdList: item.favorite.plate,
+              userId: 0
+            },
+            {
+              itemKind: 2,
+              itemIdList: item.favorite.title,
+              userId: 0
+            },
+            {
+              itemKind: 3,
+              itemIdList: item.favorite.icon,
+              userId: 0
+            },
+            {
+              itemKind: 5,
+              itemIdList: item.favorite.music
+            },
+            {
+              itemKind: 10,
+              itemIdList: item.favorite.partner,
+              userId: 0
+            },
+            {
+              itemKind: 11,
+              itemIdList: item.favorite.frame,
+              userId: 0
+            }
+          ],
+          userFriendSeasonRankingList: [],
+          userGeneralDataList: [
+            { propertyKey: 'recent_rating', propertyValue: '' },
+            { propertyKey: 'recent_rating_new', propertyValue: '' },
+            { propertyKey: 'recent_rating_next', propertyValue: '' },
+            { propertyKey: 'recent_rating_next_new', propertyValue: '' }
+          ],
+          userItemList: [
+            ...item.item.plate.map(v => {
+              return {
+                itemKind: 1,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            }),
+            ...item.item.title.map(v => {
+              return {
+                itemKind: 2,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            }),
+            ...item.item.icon.map(v => {
+              return {
+                itemKind: 3,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            }),
+            ...item.item.music.map(v => {
+              return {
+                itemKind: 5,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            }),
+            ...item.item.musicMas.map(v => {
+              return {
+                itemKind: 6,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            }),
+            ...item.item.musicRem.map(v => {
+              return {
+                itemKind: 7,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            }),
+            ...item.item.frame.map(v => {
+              return {
+                itemKind: 11,
+                itemId: v.id,
+                stock: v.stock,
+                isValid: true
+              }
+            })
+          ],
+          userLoginBonusList: [],
+          userMapList: item.map.map(v => {
+            return {
+              mapId: v.mapId,
+              distance: v.distance,
+              isLock: v.isLock,
+              isClear: v.isClear,
+              isComplete: v.isComplete
+            }
+          }),
+          userMusicDetailList: item.score,
+          userIntimateList: [],
+          userFavoriteMusicList: [],
+          userKaleidxScopeList: [],
+          userPlaylogList: [],
+          gameId: 'SDEZ'
+        }
+        return data
+      }
+
+      // Message management
+      function clearMessages() {
+        messages.innerHTML = ''
+        messages.classList.remove('show')
+      }
+
+      function addMessage(type, text) {
+        messages.classList.add('show')
+
+        const message = document.createElement('div')
+        message.className = `message ${type}`
+        message.textContent = text
+
+        messages.appendChild(message)
+        messages.scrollTop = messages.scrollHeight
+      }
+
+      // Download converted data
+      function downloadData(data) {
+        const json = JSON.stringify(data, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `munet-data-${Date.now()}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+
+        // addMessage('success', '文件下载成功！');
+      }
+
+      // Start the app
+      init()
+    </script>
+  </body>
+</html>

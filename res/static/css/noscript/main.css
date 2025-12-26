@@ -22,6 +22,7 @@ body {
     background-color: rgb(24, 24, 24);
     color: black;
   }
+  iframe,
   img,
   video {
     filter: invert(1) hue-rotate(180deg);

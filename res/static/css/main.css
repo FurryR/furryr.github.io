@@ -369,6 +369,7 @@ body {
     background-color: var(--blog-background);
     color: black;
   }
+  iframe,
   img,
   video {
     filter: invert(1) hue-rotate(180deg);
