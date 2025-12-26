@@ -734,14 +734,20 @@ export class ArchiveScene extends Scene {
     const targetTitleSize = currentTitleSize * (2.0 / 1.8)
 
     // 创建 loading-icon（但暂不添加到 DOM）
-    const loadingIcon = Elements.div().class('loading-icon').hide()
+    const mainLoadingIcon = Elements.div().class('loading-icon').hide()
+
+    // 创建 side loading-icon（但暂不添加到 DOM）
+    const sidebarLoadingIcon = Elements.div().class('loading-icon').hide()
 
     // 先设置 transitionContext，让 blog 可以立即访问
     this.transitionContext = {
       postElement: postElement.element,
       postTitle: postTitle.element,
       metadata: metadata.element,
-      loadingIcon: loadingIcon.element,
+      loadingIcons: {
+        main: mainLoadingIcon,
+        sidebar: sidebarLoadingIcon
+      },
       transitionReady,
       postData: {
         name: post.name,
@@ -844,9 +850,14 @@ export class ArchiveScene extends Scene {
       const loadingOffset = -(scrollTop
         ? translateDistance2
         : translateDistance1)
-      loadingIcon.element.style.transform = `translate(100%, ${loadingOffset}px)`
-      postElement.element.appendChild(loadingIcon.element)
-      await Animations.fadein(loadingIcon, 200)
+      mainLoadingIcon.element.style.transform = `translate(100%, ${loadingOffset}px)`
+      postElement.element.appendChild(mainLoadingIcon.element)
+
+      this.sidebar.appendChild(sidebarLoadingIcon.element)
+      await Promise.all([
+        Animations.fadein(mainLoadingIcon, 200),
+        Animations.fadein(sidebarLoadingIcon, 200)
+      ])
 
       // 4. 通知过渡准备完成
       transitionReady.resolve()

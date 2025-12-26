@@ -129,6 +129,11 @@ const css = `
   color: rgb(175, 175, 175);
 }
 
+.blog-catalog-item-empty {
+  color: gray;
+  font-style: italic;
+}
+
 /** For utterances */
 .utterances-placeholder {
   position: relative;
@@ -214,6 +219,7 @@ export class BlogScene extends Scene {
         this.sidebar
       )
     } else {
+      loadingIcons = transitionContext.loadingIcons
       // Archive 过渡：等待 archive 侧的动画完成
       await transitionContext.transitionReady.promise
 
@@ -267,10 +273,13 @@ export class BlogScene extends Scene {
     if (isArchiveTransition) {
       // 直接淡出 loadingIcon
 
-      const loadingIcon = new AnimationElement(transitionContext.loadingIcon)
-      await Animations.fadeout(loadingIcon, 200)
+      await Animations.fadeout(transitionContext.loadingIcons.main, 200)
 
       fromScene.dispose() // dispose() is always synchronous here
+
+      // 再把 loadingIcon 加回 sidebar
+
+      this.sidebar.appendChild(transitionContext.loadingIcons.sidebar.element)
     }
     document.title = configuration.title
 
@@ -447,23 +456,22 @@ export class BlogScene extends Scene {
         })
         catalogs.push(catalogItem)
       }
+      if (catalogs.length === 0) {
+        const noCatalog = Elements.li()
+          .class('blog-catalog-item-empty')
+          .content('(无目录项)')
+        catalogList.child([noCatalog])
+      }
       catalogList.child(catalogs)
       this.sidebar.appendChild(title.element)
       this.sidebar.appendChild(catalogList.element)
 
-      if (!isArchiveTransition) {
-        // 标准过渡：显示 loading 然后淡入
-        await Animations.fadeout(loadingIcons.sidebar, 200)
-        loadingIcons.sidebar.element.remove()
-        await Animations.wait(200)
-        await Animations.fadein(title, 200)
-        await Animations.wait(200)
-        await Animations.fadein(catalogList, 200)
-      } else {
-        // Archive 过渡：直接显示侧边栏内容
-        title.show()
-        catalogList.show()
-      }
+      await Animations.fadeout(loadingIcons.sidebar, 200)
+      loadingIcons.sidebar.element.remove()
+      await Animations.wait(200)
+      await Animations.fadein(title, 200)
+      await Animations.wait(200)
+      await Animations.fadein(catalogList, 200)
     })()
     await Animations.wait(200)
     article.style.lineHeight = ''
