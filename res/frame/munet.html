@@ -37,28 +37,6 @@
         line-height: 1.6;
       }
 
-      /* Splash Screen */
-      #splash {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        transition:
-          opacity 0.4s ease,
-          visibility 0.4s ease;
-      }
-
-      #splash.hidden {
-        opacity: 0;
-        visibility: hidden;
-      }
-
       .loading-dots {
         display: block;
         width: 0px;
@@ -564,11 +542,6 @@
     </style>
   </head>
   <body>
-    <!-- Splash Screen -->
-    <div id="splash">
-      <div class="loading-dots"></div>
-    </div>
-
     <!-- Header -->
     <div class="header">
       <h1><i class="ai-arrow-cycle"></i>迁移到 MuNET</h1>
@@ -612,7 +585,7 @@
     <div class="footer">
       © 2025
       <a
-        href="https://furryr.github.io"
+        href="https://furryr.is-a.dev"
         target="_blank"
         rel="noopener noreferrer"
         >FurryR</a
@@ -648,7 +621,6 @@ Gx+Uy47mHcEiG4DVUtsKG4UCAwEAAQ==
       let convertedData = null
 
       // DOM elements
-      const splash = document.getElementById('splash')
       const uploadArea = document.getElementById('uploadArea')
       const fileInput = document.getElementById('fileInput')
       const messages = document.getElementById('messages')
@@ -656,11 +628,6 @@ Gx+Uy47mHcEiG4DVUtsKG4UCAwEAAQ==
 
       // Initialize app
       function init() {
-        // Hide splash screen after a short delay
-        setTimeout(() => {
-          splash.classList.add('hidden')
-        }, 600)
-
         // Setup event listeners
         setupEventListeners()
       }
