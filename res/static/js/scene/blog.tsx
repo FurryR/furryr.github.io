@@ -1,9 +1,11 @@
-import { AnimationElement, Elements } from '/static/js/util/animation.js'
+// @ts-nocheck
 
-import { withResolvers } from '/static/js/util/promise.js'
+import { AnimationElement, Elements } from '/static/js/util/animation.ts'
 
-import { Scene } from '/static/js/scene.js'
-import { Effect } from '/static/js/effect.js'
+import { withResolvers } from '/static/js/util/promise.ts'
+
+import { Scene } from '/static/js/scene.ts'
+import { Effect } from '/static/js/effect.ts'
 
 const css = `
 @import url('https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/default.min.css');
@@ -222,45 +224,6 @@ export class BlogScene extends Scene {
       loadingIcons = transitionContext.loadingIcons
       // Archive 过渡：等待 archive 侧的动画完成
       await transitionContext.transitionReady.promise
-
-      // 获取 archive 创建的 loading-icon（在 dispose 之前保存引用）
-      // const loadingIconElement = transitionContext.loadingIcon
-      // // 先将 loading-icon 从旧元素中移出，防止被 dispose 删除
-      // if (loadingIconElement.parentNode) {
-      //   loadingIconElement.parentNode.removeChild(loadingIconElement)
-      // }
-
-      // 保存 postData 用于后续创建元素
-      // const postData = transitionContext.postData
-
-      // 先销毁 fromScene（这会清空 main 和 sidebar）
-      // await fromScene.dispose()
-
-      // dispose 之后再创建新元素
-      // const authors = postData.author.split(',').map(v => v.trim())
-
-      // author =
-      //   authors.length > 1
-      //     ? Elements.span([
-      //         Elements.span().content(authors[0]),
-      //         Elements.span().content('等').class('blog-post-author-etc')
-      //       ])
-      //         .class('blog-post-author')
-      //         .with('title', authors.join('、'))
-      //     : Elements.span().content(authors[0]).class('blog-post-author')
-
-      // metadata = Elements.div([
-      //   (title = Elements.h1().content(postData.name).class('blog-post-title')),
-      //   author,
-      //   (time = Elements.span().content(postData.time).class('blog-post-time')),
-      //   (category = Elements.span()
-      //     .content(postData.category)
-      //     .class('blog-post-category')),
-      //   (tag = Elements.span().content(postData.tag).class('blog-post-tag'))
-      // ]).class('blog-post-metadata')
-
-      // // 添加新的 metadata 到 main
-      // this.main.appendChild(metadata.element)
     }
 
     let configuration
@@ -317,7 +280,7 @@ export class BlogScene extends Scene {
         }
       )
     })
-    const dependency = import('/static/js/component/utterances.js').then(
+    const dependency = import('/static/js/component/utterances.ts').then(
       v => v.default
     )
     const catalog = generateCatalog(article)
@@ -325,38 +288,50 @@ export class BlogScene extends Scene {
     // 如果不是 archive 过渡，则从配置创建 metadata
     // if (!isArchiveTransition) {
     author =
-      configuration.author.length > 1
-        ? Elements.span([
-            Elements.span().content(configuration.author[0]),
-            Elements.span().content('等').class('blog-post-author-etc')
-          ])
-            .class('blog-post-author')
-            .with('title', configuration.author.join('、'))
-            .hide()
-        : Elements.span()
-            .content(configuration.author[0])
-            .class('blog-post-author')
-            .hide()
+      configuration.author.length > 1 ? (
+        <span
+          class="blog-post-author"
+          title={configuration.author.join('、')}
+          hide
+        >
+          <span>{configuration.author[0]}</span>
+          <span class="blog-post-author-etc">等</span>
+        </span>
+      ) : (
+        <span class="blog-post-author" hide>
+          {configuration.author[0]}
+        </span>
+      )
+    title = (
+      <h1 class="blog-post-title" hide>
+        {configuration.title}
+      </h1>
+    )
+    time = (
+      <span class="blog-post-time" hide>
+        {configuration.time.toISOString()}
+      </span>
+    )
+    category = (
+      <span class="blog-post-category" hide>
+        {configuration.category}
+      </span>
+    )
+    tag = (
+      <span class="blog-post-tag" hide>
+        {configuration.tags.join(' ')}
+      </span>
+    )
 
-    metadata = Elements.div([
-      (title = Elements.h1()
-        .content(configuration.title)
-        .class('blog-post-title')
-        .hide()),
-      author,
-      (time = Elements.span()
-        .content(configuration.time.toISOString())
-        .class('blog-post-time')
-        .hide()),
-      (category = Elements.span()
-        .content(configuration.category)
-        .class('blog-post-category')
-        .hide()),
-      (tag = Elements.span()
-        .content(configuration.tags.join(' '))
-        .class('blog-post-tag')
-        .hide())
-    ]).class('blog-post-metadata')
+    metadata = (
+      <div class="blog-post-metadata">
+        {title}
+        {author}
+        {time}
+        {category}
+        {tag}
+      </div>
+    )
 
     this.main.appendChild(metadata.element)
     // }
@@ -373,13 +348,13 @@ export class BlogScene extends Scene {
     const splitElementAnimation = withResolvers()
     const articleElement = new AnimationElement(article).hide()
     this.main.appendChild(article)
-    const split = Elements.hr().class('blog-post-split').hide()
+    const split = <hr class="blog-post-split" hide />
     this.main.appendChild(split.element)
-    const utterancesPlaceholder = Elements.div([
-      Elements.div().class('loading-icon')
-    ])
-      .class('utterances-placeholder')
-      .hide()
+    const utterancesPlaceholder = (
+      <div class="utterances-placeholder" hide>
+        <div class="loading-icon" />
+      </div>
+    )
     this.main.appendChild(utterancesPlaceholder.element)
     const Utterances = await dependency
     this.effect.use(() => {
@@ -434,18 +409,20 @@ export class BlogScene extends Scene {
       await Animations.fadein(tag, 150)
     }
     ;(async () => {
-      const title = Elements.h3()
-        .content('目录')
-        .class('blog-catalog-title')
-        .hide()
+      const title = (
+        <h3 class="blog-catalog-title" hide>
+          目录
+        </h3>
+      )
       const catalogs = []
-      const catalogList = Elements.ul().class('blog-catalog-list').hide()
+      const catalogList = <ul class="blog-catalog-list" hide />
       for (const item of catalog) {
-        let a = Elements.a()
-          .content(item.title)
-          .with('href', '#')
-          .class(`blog-catalog-item-h${item.level}`)
-        const catalogItem = Elements.li([a])
+        let a = (
+          <a href="#" class={`blog-catalog-item-h${item.level}`}>
+            {item.title}
+          </a>
+        )
+        const catalogItem = <li>{a}</li>
         a.element.addEventListener('click', ev => {
           ev.preventDefault()
           item.element.scrollIntoView({
@@ -457,10 +434,7 @@ export class BlogScene extends Scene {
         catalogs.push(catalogItem)
       }
       if (catalogs.length === 0) {
-        const noCatalog = Elements.li()
-          .class('blog-catalog-item-empty')
-          .content('(无目录项)')
-        catalogList.child([noCatalog])
+        catalogs.push(<li class="blog-catalog-item-empty">(无目录项)</li>)
       }
       catalogList.child(catalogs)
       this.sidebar.appendChild(title.element)

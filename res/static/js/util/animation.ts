@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * @typedef { Promise<void> | { abort: () => void }} AbortableAnimation
  */
@@ -5,12 +7,14 @@
 /**
  * @template {HTMLElement} T
  */
-export class AnimationElement {
+export class AnimationElement<T extends Element = HTMLElement> {
+  element: T
+
   /**
    *
    * @param {T} elem
    */
-  constructor(elem) {
+  constructor(elem: T) {
     this.element = elem
   }
 

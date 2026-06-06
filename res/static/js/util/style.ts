@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 export function addStyle(url) {
   if (url instanceof URL) {
     const link = document.createElement('link')

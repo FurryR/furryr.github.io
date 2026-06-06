@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 export function withResolvers() {
   let resolveFn, rejectFn
   return {

@@ -85,7 +85,17 @@ function generatePostHtml(metadata, content = '') {
       <category>${escapeHtml(category)}</category>
       <tag>${escapeHtml(tagString)}</tag>
     </blog>
-    <script src="/static/js/index.js" type="module" async defer></script>
+    <tsconfig src="/tsconfig.browser.json"></tsconfig>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest/dist/typescript-runtime.global.js"
+      raw
+    ></script>
+    <script
+      src="/static/js/index.tsx"
+      type="text/typescript-tsx"
+      async
+      defer
+    ></script>
     <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
     <noscript
       ><link rel="stylesheet" href="/static/css/noscript/blog.css"

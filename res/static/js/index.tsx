@@ -5,11 +5,12 @@
  * Distributed under the MIT License.
  */
 
-import { AnimationElement, Elements, scope } from '/static/js/util/animation.js'
-import { Route } from '/static/js/route.js'
-import { randomHitokoto } from '/static/js/hitokoto.js'
-import { withResolvers } from '/static/js/util/promise.js'
-import { addStyle } from '/static/js/util/style.js'
+import '/static/js/jsx-runtime.ts'
+import { AnimationElement, Elements, scope } from '/static/js/util/animation.ts'
+import { Route } from '/static/js/route.ts'
+import { randomHitokoto } from '/static/js/hitokoto.ts'
+import { withResolvers } from '/static/js/util/promise.ts'
+import { addStyle } from '/static/js/util/style.ts'
 
 async function initalizeHeader() {
   return scope(async Animations => {
@@ -34,87 +35,92 @@ async function initalizeHeader() {
         }
       )
     }
-    let title,
-      subtitle,
-      hitokoto,
-      home,
-      archive,
-      friend,
-      contact,
-      commandBar,
-      commandInput,
-      commandDropdown
-    const header = Elements.header([
-      Elements.h1([
-        (title = Elements.span().content('熊谷 凌').class('blog-title').hide()),
-        (subtitle = Elements.span()
-          .content('的博客')
-          .class('blog-subtitle')
-          .hide())
-      ]).class('blog-title-container'),
-      (hitokoto = Elements.span()
-        .content(randomHitokoto())
-        .class('blog-hitokoto')
-        .hide()),
-      Elements.nav([
-        Elements.ul([
-          (home = Elements.li([
-            Elements.a()
-              .content('主页')
-              .class('blog-nav-links-item-a')
-              .with('href', '/index.html')
-          ])
-            .class('blog-nav-links-item')
-            .hide()),
-          (archive = Elements.li([
-            Elements.a()
-              .content('归档')
-              .class('blog-nav-links-item-a')
-              .with('href', '/archive.html')
-          ])
-            .class('blog-nav-links-item')
-            .hide()),
-          (friend = Elements.li([
-            Elements.a()
-              .content('友链')
-              .class('blog-nav-links-item-a')
-              .with('href', '/friend.html')
-          ])
-            .class('blog-nav-links-item')
-            .hide()),
-          (contact = Elements.li([
-            Elements.a()
-              .content('关于我')
-              .class('blog-nav-links-item-a')
-              .with('href', '/about.html')
-          ])
-            .class('blog-nav-links-item-last')
-            .hide()),
-          (commandBar = Elements.li([
-            (commandInput = Elements.input()
-              .class('blog-nav-command')
-              .with('placeholder', '>')),
-            (commandDropdown = Elements.div([
-              Elements.div([
-                // TODO: command suggestion system
-                Elements.p()
-                  .content('以后应该会有搜索和命令功能')
-                  .style('textWrapMode', 'nowrap')
-                  .style('position', 'absolute')
-                  .style('top', '50%')
-                  .style('left', '50%')
-                  .style('transform', 'translate(-50%, -50%)')
-                  .style('margin', '0')
-              ]).class('blog-nav-command-dropdown-container')
-            ])
-              .class('blog-nav-command-dropdown')
-              .hide())
-          ])
-            .class('blog-nav-item-command')
-            .hide())
-        ])
-      ]).class('blog-nav')
-    ])
+    const title = (
+      <span class="blog-title" hide>
+        熊谷 凌
+      </span>
+    )
+    const subtitle = (
+      <span class="blog-subtitle" hide>
+        的博客
+      </span>
+    )
+    const hitokoto = (
+      <span class="blog-hitokoto" hide>
+        {randomHitokoto()}
+      </span>
+    )
+    const home = (
+      <li class="blog-nav-links-item" hide>
+        <a class="blog-nav-links-item-a" href="/index.html">
+          主页
+        </a>
+      </li>
+    )
+    const archive = (
+      <li class="blog-nav-links-item" hide>
+        <a class="blog-nav-links-item-a" href="/archive.html">
+          归档
+        </a>
+      </li>
+    )
+    const friend = (
+      <li class="blog-nav-links-item" hide>
+        <a class="blog-nav-links-item-a" href="/friend.html">
+          友链
+        </a>
+      </li>
+    )
+    const contact = (
+      <li class="blog-nav-links-item-last" hide>
+        <a class="blog-nav-links-item-a" href="/about.html">
+          关于我
+        </a>
+      </li>
+    )
+    const commandInput = <input class="blog-nav-command" placeholder=">" />
+    const commandDropdown = (
+      <div class="blog-nav-command-dropdown" hide>
+        <div class="blog-nav-command-dropdown-container">
+          <p
+            style={{
+              textWrapMode: 'nowrap',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              margin: '0'
+            }}
+          >
+            以后应该会有搜索和命令功能
+          </p>
+        </div>
+      </div>
+    )
+    const commandBar = (
+      <li class="blog-nav-item-command" hide>
+        {commandInput}
+        {commandDropdown}
+      </li>
+    )
+    const header = (
+      <header>
+        <h1 class="blog-title-container">
+          {title}
+          {subtitle}
+        </h1>
+        {hitokoto}
+        <nav class="blog-nav">
+          <ul>
+            {home}
+            {archive}
+            {friend}
+            {contact}
+            {commandBar}
+          </ul>
+        </nav>
+      </header>
+    )
     commandInput.element.addEventListener('focus', async () => {
       await Animations.fadein(commandDropdown, 200)
     })
@@ -141,60 +147,51 @@ async function initalizeHeader() {
   }).promise
 }
 function initalizeMain() {
-  let content, mainContainer, barContainer
-  let github, discord, telegram, twitter
-  const main = Elements.main([
-    (content = Elements.div([
-      Elements.div([
-        (mainContainer = Elements.div([Elements.div().class('loading-icon')])
-          .class('blog-main-content')
-          .hide())
-      ]).class('blog-main'),
-      Elements.div([
-        Elements.div([
-          (barContainer = Elements.div([Elements.div().class('loading-icon')])
-            .class('blog-sidebar-content')
-            .hide())
-        ]).class('blog-sidebar'),
-        Elements.div([
-          (github = Elements.a([
-            Elements.img()
-              .with('src', '/static/res/icons/blog-github.svg')
-              .with('alt', 'GitHub')
-          ])
-            .with('target', '_blank')
-            .with('href', 'https://github.com/FurryR')
-            .hide()),
-          (discord = Elements.a([
-            Elements.img()
-              .with('src', '/static/res/icons/blog-discord.svg')
-              .with('alt', 'Discord')
-          ])
-            .with('target', '_blank')
-            .with('href', 'http://discordapp.com/users/im_furryr')
-            .hide()),
-          (telegram = Elements.a([
-            Elements.img()
-              .with('src', '/static/res/icons/blog-telegram.svg')
-              .with('alt', 'Telegram')
-          ])
-            .with('target', '_blank')
-            .with('href', 'https://t.me/im_furryr')
-            .hide()),
-          (twitter = Elements.a([
-            Elements.img()
-              .with('src', '/static/res/icons/blog-twitter.svg')
-              .with('alt', 'X (Twitter)')
-          ])
-            .with('target', '_blank')
-            .with('href', 'https://x.com/im_furryr')
-            .hide())
-        ]).class('blog-contacts')
-      ]).class('blog-side')
-    ])
-      .class('blog-page')
-      .hide())
-  ])
+  const mainContainer = (
+    <div class="blog-main-content" hide>
+      <div class="loading-icon" />
+    </div>
+  )
+  const barContainer = (
+    <div class="blog-sidebar-content" hide>
+      <div class="loading-icon" />
+    </div>
+  )
+  const github = (
+    <a target="_blank" href="https://github.com/FurryR" hide>
+      <img src="/static/res/icons/blog-github.svg" alt="GitHub" />
+    </a>
+  )
+  const discord = (
+    <a target="_blank" href="http://discordapp.com/users/im_furryr" hide>
+      <img src="/static/res/icons/blog-discord.svg" alt="Discord" />
+    </a>
+  )
+  const telegram = (
+    <a target="_blank" href="https://t.me/im_furryr" hide>
+      <img src="/static/res/icons/blog-telegram.svg" alt="Telegram" />
+    </a>
+  )
+  const twitter = (
+    <a target="_blank" href="https://x.com/im_furryr" hide>
+      <img src="/static/res/icons/blog-twitter.svg" alt="X (Twitter)" />
+    </a>
+  )
+  const content = (
+    <div class="blog-page" hide>
+      <div class="blog-main">{mainContainer}</div>
+      <div class="blog-side">
+        <div class="blog-sidebar">{barContainer}</div>
+        <div class="blog-contacts">
+          {github}
+          {discord}
+          {telegram}
+          {twitter}
+        </div>
+      </div>
+    </div>
+  )
+  const main = <main>{content}</main>
   document.body.appendChild(main.element)
   return {
     main: mainContainer.element,
@@ -248,7 +245,7 @@ async function initalizeFooter(contentPromise) {
 window.Route = Route /** For debug purposes */
 ;(() => {
   console.log(
-    '%c⚡ Powered by native Javascript',
+    '%c⚡ Powered by native Typescript',
     'font-weight: bold; font-size: 16px;',
     '- Blazing fast and lightweight.'
   )
@@ -286,7 +283,7 @@ window.Route = Route /** For debug purposes */
     )
     while (document.body.firstChild)
       document.body.removeChild(document.body.firstChild)
-    let firstScene = Route.parse(
+    let firstScene: any = Route.parse(
       Promise.resolve(cloned),
       window.location.pathname
     )

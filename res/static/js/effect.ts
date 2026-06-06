@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 export class Effect {
   constructor() {
     this.effects = []

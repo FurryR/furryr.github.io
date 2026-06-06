@@ -1,12 +1,14 @@
-import { withResolvers } from '/static/js/util/promise.js'
-import { scope } from '/static/js/util/animation.js'
+// @ts-nocheck
+
+import { withResolvers } from '/static/js/util/promise.ts'
+import { scope } from '/static/js/util/animation.ts'
 
 export class Route {
   /** @type {Map<RegExp, any>} */
   static Routes = new Map([
-    [/^\/(?:index.html)?$/, () => import('/static/js/scene/main.js')],
-    [/^\/archive\.html$/, () => import('/static/js/scene/archive.js')],
-    [/^\/posts\/.*\.html$/, () => import('/static/js/scene/blog.js')]
+    [/^\/(?:index.html)?$/, () => import('/static/js/scene/main.tsx')],
+    [/^\/archive\.html$/, () => import('/static/js/scene/archive.tsx')],
+    [/^\/posts\/.*\.html$/, () => import('/static/js/scene/blog.tsx')]
   ])
   static instance = null
   constructor(firstScene) {

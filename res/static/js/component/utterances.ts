@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * This component is created by utteranc.es and optimized by @FurryR for better animations.
  */

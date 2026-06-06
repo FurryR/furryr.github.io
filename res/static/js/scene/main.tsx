@@ -1,8 +1,10 @@
-import { Elements } from '/static/js/util/animation.js'
+// @ts-nocheck
 
-import { Scene } from '/static/js/scene.js'
-import { Route } from '/static/js/route.js'
-import { Effect } from '/static/js/effect.js'
+import { Elements } from '/static/js/util/animation.ts'
+
+import { Scene } from '/static/js/scene.ts'
+import { Route } from '/static/js/route.ts'
+import { Effect } from '/static/js/effect.ts'
 
 const css = `
 .blog-main-intro {
@@ -195,33 +197,27 @@ export class MainScene extends Scene {
   }
 
   createDropdownItem(post, index) {
-    const item = document.createElement('div')
-    item.className = 'blog-index-search-dropdown-item'
-    item.dataset.index = index
-    item.dataset.url = post.url
-
-    const title = document.createElement('div')
-    title.className = 'blog-index-search-dropdown-item-title'
-    title.textContent = post.name
-
-    const meta = document.createElement('div')
-    meta.className = 'blog-index-search-dropdown-item-meta'
-    meta.textContent = `${post.author} · ${post.time} · ${post.category}`
-
-    item.appendChild(title)
-    item.appendChild(meta)
-
-    return item
+    const item = (
+      <div class="blog-index-search-dropdown-item">
+        <div class="blog-index-search-dropdown-item-title">{post.name}</div>
+        <div class="blog-index-search-dropdown-item-meta">
+          {`${post.author} · ${post.time} · ${post.category}`}
+        </div>
+      </div>
+    )
+    item.element.dataset.index = index
+    item.element.dataset.url = post.url
+    return item.element
   }
 
   updateDropdown(dropdown, posts) {
     dropdown.innerHTML = ''
 
     if (posts.length === 0) {
-      const empty = document.createElement('div')
-      empty.className = 'blog-index-search-dropdown-empty'
-      empty.textContent = '未找到匹配的文章'
-      dropdown.appendChild(empty)
+      const empty = (
+        <div class="blog-index-search-dropdown-empty">未找到匹配的文章</div>
+      )
+      dropdown.appendChild(empty.element)
       this.selectedIndex = -1
       return
     }
@@ -284,13 +280,13 @@ export class MainScene extends Scene {
     await Animations.fadeout(loadingIcons.main, 200)
     loadingIcons.main.element.remove()
     if (!fromScene) {
-      let introTitle
-      const introContainer = Elements.div([
-        (introTitle = Elements.h1().content('In memory of')),
-        Elements.p().content('nullqwertyuiop')
-      ])
-        .class('blog-main-intro')
-        .hide()
+      const introTitle = <h1>In memory of</h1>
+      const introContainer = (
+        <div class="blog-main-intro" hide>
+          {introTitle}
+          <p>nullqwertyuiop</p>
+        </div>
+      )
       this.main.appendChild(introContainer.element)
       await Animations.fadein(introContainer, 200)
       await Animations.wait(800)
@@ -303,27 +299,31 @@ export class MainScene extends Scene {
     }
 
     // 生成首页内容
-    const title = Elements.h1()
-      .content(mainContent.querySelector('h1').textContent)
-      .class('blog-index-title')
-    const subtitle = Elements.p()
-      .content(mainContent.querySelector('p').textContent)
-      .class('blog-index-subtitle')
+    const title = (
+      <h1 class="blog-index-title">
+        {mainContent.querySelector('h1').textContent}
+      </h1>
+    )
+    const subtitle = (
+      <p class="blog-index-subtitle">
+        {mainContent.querySelector('p').textContent}
+      </p>
+    )
 
     // 搜索框
     const searchInput = mainContent.querySelector('search input')
-    const searchInputElement = Elements.input()
-      .with('type', 'text')
-      .with(
-        'placeholder',
-        searchInput ? searchInput.placeholder : '询问我任何事情。'
-      )
-      .class('blog-index-search-input')
+    const searchInputElement = (
+      <input
+        type="text"
+        placeholder={searchInput ? searchInput.placeholder : '询问我任何事情。'}
+        class="blog-index-search-input"
+      />
+    )
 
     // 搜索下拉框
-    const dropdown = document.createElement('div')
-    dropdown.className = 'blog-index-search-dropdown'
-    dropdown.style.display = 'none'
+    const dropdown = <div class="blog-index-search-dropdown" />
+    const dropdownElement = dropdown.element
+    dropdownElement.style.display = 'none'
 
     let isDropdownVisible = false
     let loadingPosts = false
@@ -336,13 +336,13 @@ export class MainScene extends Scene {
 
       const query = searchInputElement.element.value
       if (query.trim()) {
-        dropdown.style.display = 'block'
+        dropdownElement.style.display = 'block'
         isDropdownVisible = true
 
         if (!this.postsData && !loadingPosts) {
           // 显示加载动画
           loadingPosts = true
-          dropdown.innerHTML =
+          dropdownElement.innerHTML =
             '<div class="blog-index-search-dropdown-loading"><div class="loading-icon"></div></div>'
 
           await postsLoadPromise
@@ -350,7 +350,7 @@ export class MainScene extends Scene {
 
           // 加载完成后更新下拉框
           this.filteredPosts = this.filterPosts(query)
-          this.updateDropdown(dropdown, this.filteredPosts)
+          this.updateDropdown(dropdownElement, this.filteredPosts)
         }
       }
     })
@@ -359,7 +359,7 @@ export class MainScene extends Scene {
       searchInputElement.element.placeholder = '询问我任何事情。'
       // 延迟隐藏以允许点击下拉项
       setTimeout(() => {
-        dropdown.style.display = 'none'
+        dropdownElement.style.display = 'none'
         isDropdownVisible = false
       }, 200)
     })
@@ -368,18 +368,18 @@ export class MainScene extends Scene {
       const query = ev.target.value
 
       if (!query.trim()) {
-        dropdown.style.display = 'none'
+        dropdownElement.style.display = 'none'
         isDropdownVisible = false
         return
       }
 
-      dropdown.style.display = 'block'
+      dropdownElement.style.display = 'block'
       isDropdownVisible = true
 
       if (!this.postsData && !loadingPosts) {
         // 显示加载动画
         loadingPosts = true
-        dropdown.innerHTML =
+        dropdownElement.innerHTML =
           '<div class="blog-index-search-dropdown-loading"><div class="loading-icon"></div></div>'
 
         await postsLoadPromise
@@ -388,7 +388,7 @@ export class MainScene extends Scene {
 
       if (this.postsData) {
         this.filteredPosts = this.filterPosts(query)
-        this.updateDropdown(dropdown, this.filteredPosts)
+        this.updateDropdown(dropdownElement, this.filteredPosts)
       }
     })
 
@@ -421,35 +421,44 @@ export class MainScene extends Scene {
           this.navigateToPost(post.url)
         }
       } else if (ev.key === 'Escape') {
-        dropdown.style.display = 'none'
+        dropdownElement.style.display = 'none'
         isDropdownVisible = false
         searchInputElement.element.blur()
       }
     })
 
     // 点击下拉项导航
-    dropdown.addEventListener('click', ev => {
+    dropdownElement.addEventListener('click', ev => {
       const item = ev.target.closest('.blog-index-search-dropdown-item')
       if (item && item.dataset.url) {
         this.navigateToPost(item.dataset.url)
       }
     })
 
-    const search = Elements.div([searchInputElement]).class('blog-index-search')
-    search.element.appendChild(dropdown)
+    const search = <div class="blog-index-search">{searchInputElement}</div>
+    search.element.appendChild(dropdownElement)
 
     // 导航链接
     const navLink = mainContent.querySelector('nav a')
-    const navLinkElement = Elements.a()
-      .content(navLink ? navLink.textContent : '查看所有文章')
-      .with('href', navLink ? navLink.getAttribute('href') : '/archive.html')
-      .class('blog-index-nav-link')
-    const nav = Elements.nav([navLinkElement]).class('blog-index-nav')
+    const navLinkElement = (
+      <a
+        href={navLink ? navLink.getAttribute('href') : '/archive.html'}
+        class="blog-index-nav-link"
+      >
+        {navLink ? navLink.textContent : '查看所有文章'}
+      </a>
+    )
+    const nav = <nav class="blog-index-nav">{navLinkElement}</nav>
 
     // 使用容器包裹所有内容以实现更好的布局
-    const container = Elements.div([title, subtitle, search, nav])
-      .class('blog-index-container')
-      .hide()
+    const container = (
+      <div class="blog-index-container" hide>
+        {title}
+        {subtitle}
+        {search}
+        {nav}
+      </div>
+    )
 
     this.main.appendChild(container.element)
 
@@ -468,15 +477,19 @@ export class MainScene extends Scene {
     loadingIcons.sidebar.element.remove()
 
     // 生成侧边栏内容
-    const sidebarTitle = Elements.h2()
-      .content(sideContent.querySelector('h2').textContent)
-      .class('blog-index-sidebar-title')
-      .hide()
-    const sidebarAvatar = Elements.img()
-      .with('src', sideContent.querySelector('img').src)
-      .with('alt', sideContent.querySelector('img').alt)
-      .class('blog-index-sidebar-avatar')
-      .hide()
+    const sidebarTitle = (
+      <h2 class="blog-index-sidebar-title" hide>
+        {sideContent.querySelector('h2').textContent}
+      </h2>
+    )
+    const sidebarAvatar = (
+      <img
+        src={sideContent.querySelector('img').src}
+        alt={sideContent.querySelector('img').alt}
+        class="blog-index-sidebar-avatar"
+        hide
+      />
+    )
 
     this.sidebar.appendChild(sidebarTitle.element)
     this.sidebar.appendChild(sidebarAvatar.element)

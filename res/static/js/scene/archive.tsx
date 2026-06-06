@@ -1,9 +1,11 @@
-import { AnimationElement, Elements, scope } from '/static/js/util/animation.js'
-import { withResolvers } from '/static/js/util/promise.js'
+// @ts-nocheck
 
-import { Scene } from '/static/js/scene.js'
-import { Route } from '/static/js/route.js'
-import { Effect } from '/static/js/effect.js'
+import { AnimationElement, Elements, scope } from '/static/js/util/animation.ts'
+import { withResolvers } from '/static/js/util/promise.ts'
+
+import { Scene } from '/static/js/scene.ts'
+import { Route } from '/static/js/route.ts'
+import { Effect } from '/static/js/effect.ts'
 
 const css = `
 .blog-archive-title {
@@ -294,17 +296,17 @@ export class ArchiveScene extends Scene {
     })
 
     // 生成主内容
-    const title = Elements.h1()
-      .content('归档')
-      .class('blog-archive-title')
-      .hide()
-
-    const subtitle = Elements.p()
-      .content('所有东西都在这咯')
-      .class('blog-archive-subtitle')
-      .hide()
-
-    const container = Elements.div().class('blog-archive-container')
+    const title = (
+      <h1 class="blog-archive-title" hide>
+        归档
+      </h1>
+    )
+    const subtitle = (
+      <p class="blog-archive-subtitle" hide>
+        所有东西都在这咯
+      </p>
+    )
+    const container = <div class="blog-archive-container" />
 
     this.main.appendChild(title.element)
     this.main.appendChild(subtitle.element)
@@ -355,7 +357,7 @@ export class ArchiveScene extends Scene {
       // 显示加载动画
       let loadingIcon
       if (showLoading) {
-        loadingIcon = Elements.div().class('loading-icon').hide()
+        loadingIcon = <div class="loading-icon" hide />
         container.element.appendChild(loadingIcon.element)
         await Animations.fadein(loadingIcon, 200)
       }
@@ -367,10 +369,11 @@ export class ArchiveScene extends Scene {
 
       // 检查是否有文章
       if (this.filteredPosts.length === 0) {
-        const noResults = Elements.div()
-          .content('（无匹配）')
-          .class('blog-archive-no-results')
-          .hide()
+        const noResults = (
+          <div class="blog-archive-no-results" hide>
+            （无匹配）
+          </div>
+        )
         container.element.appendChild(noResults.element)
         await Animations.fadein(noResults, 200)
         return
@@ -388,36 +391,37 @@ export class ArchiveScene extends Scene {
         const post = pagePosts[i]
         const authors = post.author.split(',').map(v => v.trim())
         const authorSpan =
-          authors.length > 1
-            ? Elements.span([
-                Elements.span().content(authors[0]),
-                Elements.span()
-                  .content('等')
-                  .class('blog-archive-post-author-etc')
-              ])
-            : Elements.span().content(authors[0])
+          authors.length > 1 ? (
+            <span>
+              <span>{authors[0]}</span>
+              <span class="blog-archive-post-author-etc">等</span>
+            </span>
+          ) : (
+            <span>{authors[0]}</span>
+          )
 
-        const postTitle = Elements.h2([
-          Elements.a()
-            .content(post.name)
-            .with('href', post.url)
-            .class('blog-archive-post-title-link')
-        ]).class('blog-archive-post-title')
+        const postTitle = (
+          <h2 class="blog-archive-post-title">
+            <a href={post.url} class="blog-archive-post-title-link">
+              {post.name}
+            </a>
+          </h2>
+        )
 
-        const metadata = Elements.p([
-          Elements.span([
-            // Elements.span().content('Posted by '),
-            authorSpan.class('blog-archive-post-author')
-          ]),
-          Elements.span().content(post.time).class('blog-archive-post-time'),
-          Elements.span()
-            .content(post.category)
-            .class('blog-archive-post-category'),
-          Elements.span().content(post.tag).class('blog-archive-post-tag')
-        ]).class('blog-archive-post-metadata')
+        const metadata = (
+          <p class="blog-archive-post-metadata">
+            <span class="blog-archive-post-author">{authorSpan}</span>
+            <span class="blog-archive-post-time">{post.time}</span>
+            <span class="blog-archive-post-category">{post.category}</span>
+            <span class="blog-archive-post-tag">{post.tag}</span>
+          </p>
+        )
 
-        const postElement = Elements.div([postTitle, metadata]).class(
-          'blog-archive-post'
+        const postElement = (
+          <div class="blog-archive-post">
+            {postTitle}
+            {metadata}
+          </div>
         )
 
         if (animate) {
@@ -462,7 +466,7 @@ export class ArchiveScene extends Scene {
 
         // 在文章之间添加分隔线（除了最后一篇）
         if (i < pagePosts.length - 1) {
-          const separator = Elements.hr().class('blog-archive-separator')
+          const separator = <hr class="blog-archive-separator" />
           if (animate) {
             separator.hide()
           }
@@ -487,30 +491,31 @@ export class ArchiveScene extends Scene {
     }
 
     // 创建分页控件
-    const prevButton = new AnimationElement(document.createElement('button'))
-      .content('←')
-      .class('blog-archive-pagination-button')
-
-    const pageInput = new AnimationElement(document.createElement('input'))
-      .with('type', 'number')
-      .with('min', '1')
-      .with('max', totalPages().toString())
-      .with('value', this.currentPage.toString())
-      .class('blog-archive-pagination-input')
-
-    const pageTotal = Elements.span().content(`/ ${totalPages()}`)
-
-    const pageInfo = Elements.span([pageInput, pageTotal]).class(
-      'blog-archive-pagination-info'
+    const prevButton = <button class="blog-archive-pagination-button">←</button>
+    const pageInput = (
+      <input
+        type="number"
+        min="1"
+        max={totalPages().toString()}
+        value={this.currentPage.toString()}
+        class="blog-archive-pagination-input"
+      />
     )
-
-    const nextButton = new AnimationElement(document.createElement('button'))
-      .content('→')
-      .class('blog-archive-pagination-button')
-
-    const pagination = Elements.div([prevButton, pageInfo, nextButton])
-      .class('blog-archive-pagination')
-      .hide()
+    const pageTotal = <span>{`/ ${totalPages()}`}</span>
+    const pageInfo = (
+      <span class="blog-archive-pagination-info">
+        {pageInput}
+        {pageTotal}
+      </span>
+    )
+    const nextButton = <button class="blog-archive-pagination-button">→</button>
+    const pagination = (
+      <div class="blog-archive-pagination" hide>
+        {prevButton}
+        {pageInfo}
+        {nextButton}
+      </div>
+    )
 
     this.main.appendChild(pagination.element)
 
@@ -553,94 +558,71 @@ export class ArchiveScene extends Scene {
     })
 
     // 侧边栏内容
-    const sidebarTitle = Elements.h2()
-      .content('筛选')
-      .class('blog-archive-sidebar-title')
-      .hide()
+    const sidebarTitle = (
+      <h2 class="blog-archive-sidebar-title" hide>
+        筛选
+      </h2>
+    )
 
     // 作者筛选
-    const authorFilterGroup = Elements.div()
-      .class('blog-archive-filter-group')
-      .hide()
-    const authorLabel = Elements.label()
-      .content('作者')
-      .class('blog-archive-filter-label')
-    const authorSelect = new AnimationElement(
-      document.createElement('select')
-    ).class('blog-archive-filter-select')
-
-    const authorAllOption = document.createElement('option')
-    authorAllOption.value = 'all'
-    authorAllOption.textContent = '全部'
-    authorSelect.element.appendChild(authorAllOption)
+    const authorSelect = (
+      <select class="blog-archive-filter-select">
+        <option value="all">全部</option>
+      </select>
+    )
+    const authorFilterGroup = (
+      <div class="blog-archive-filter-group" hide>
+        <label class="blog-archive-filter-label">作者</label>
+        {authorSelect}
+      </div>
+    )
 
     Array.from(authors)
       .sort()
       .forEach(author => {
-        const option = document.createElement('option')
-        option.value = author
-        option.textContent = author
-        authorSelect.element.appendChild(option)
+        const option = <option value={author}>{author}</option>
+        authorSelect.element.appendChild(option.element)
       })
 
-    authorFilterGroup.element.appendChild(authorLabel.element)
-    authorFilterGroup.element.appendChild(authorSelect.element)
-
     // 分类筛选
-    const categoryFilterGroup = Elements.div()
-      .class('blog-archive-filter-group')
-      .hide()
-    const categoryLabel = Elements.label()
-      .content('分类')
-      .class('blog-archive-filter-label')
-    const categorySelect = new AnimationElement(
-      document.createElement('select')
-    ).class('blog-archive-filter-select')
-
-    const categoryAllOption = document.createElement('option')
-    categoryAllOption.value = 'all'
-    categoryAllOption.textContent = '全部'
-    categorySelect.element.appendChild(categoryAllOption)
+    const categorySelect = (
+      <select class="blog-archive-filter-select">
+        <option value="all">全部</option>
+      </select>
+    )
+    const categoryFilterGroup = (
+      <div class="blog-archive-filter-group" hide>
+        <label class="blog-archive-filter-label">分类</label>
+        {categorySelect}
+      </div>
+    )
 
     Array.from(categories)
       .sort()
       .forEach(category => {
-        const option = document.createElement('option')
-        option.value = category
-        option.textContent = category
-        categorySelect.element.appendChild(option)
+        const option = <option value={category}>{category}</option>
+        categorySelect.element.appendChild(option.element)
       })
 
-    categoryFilterGroup.element.appendChild(categoryLabel.element)
-    categoryFilterGroup.element.appendChild(categorySelect.element)
-
     // 标签筛选
-    const tagFilterGroup = Elements.div()
-      .class('blog-archive-filter-group')
-      .hide()
-    const tagLabel = Elements.label()
-      .content('标签')
-      .class('blog-archive-filter-label')
-    const tagSelect = new AnimationElement(
-      document.createElement('select')
-    ).class('blog-archive-filter-select')
-
-    const tagAllOption = document.createElement('option')
-    tagAllOption.value = 'all'
-    tagAllOption.textContent = '全部'
-    tagSelect.element.appendChild(tagAllOption)
+    const tagSelect = (
+      <select class="blog-archive-filter-select">
+        <option value="all">全部</option>
+      </select>
+    )
+    const tagFilterGroup = (
+      <div class="blog-archive-filter-group" hide>
+        <label class="blog-archive-filter-label">标签</label>
+        {tagSelect}
+      </div>
+    )
 
     Array.from(tags)
       .sort()
       .forEach(tag => {
-        const option = document.createElement('option')
-        option.value = tag
-        option.textContent = tag
-        tagSelect.element.appendChild(option)
+        const option = <option value={tag}>{tag}</option>
+        tagSelect.element.appendChild(option.element)
       })
-
-    tagFilterGroup.element.appendChild(tagLabel.element)
-    tagFilterGroup.element.appendChild(tagSelect.element)
 
     this.sidebar.appendChild(sidebarTitle.element)
     this.sidebar.appendChild(authorFilterGroup.element)
@@ -734,10 +716,10 @@ export class ArchiveScene extends Scene {
     const targetTitleSize = currentTitleSize * (2.0 / 1.8)
 
     // 创建 loading-icon（但暂不添加到 DOM）
-    const mainLoadingIcon = Elements.div().class('loading-icon').hide()
+    const mainLoadingIcon = <div class="loading-icon" hide />
 
     // 创建 side loading-icon（但暂不添加到 DOM）
-    const sidebarLoadingIcon = Elements.div().class('loading-icon').hide()
+    const sidebarLoadingIcon = <div class="loading-icon" hide />
 
     // 先设置 transitionContext，让 blog 可以立即访问
     this.transitionContext = {

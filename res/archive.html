@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>归档</title>
     <meta name="description" content="所有文章的归档页面" />
-    <script src="/static/js/index.js" type="module" async="" defer=""></script>
-    <link rel="stylesheet" href="/static/css/preload.css" blog-preload="" />
+    <tsconfig src="/tsconfig.browser.json"></tsconfig>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest/dist/typescript-runtime.global.js"
+      raw
+    ></script>
+    <script
+      src="/static/js/index.tsx"
+      type="text/typescript-tsx"
+      async
+      defer
+    ></script>
+    <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
     <noscript
       ><link rel="stylesheet" href="/static/css/noscript/archive.css"
     /></noscript>
   </head>
   <body>
     <index>
-      <post>
-        <name>波尔 bot 到 MuNET 数据迁移工具</name>
-        <author>熊谷 凌</author>
-        <time>2025-12-26T15:31:47.748Z</time>
-        <category>maimai</category>
-        <tag>maimai</tag>
-        <url>/posts/2.html</url>
-      </post>
       <post>
         <name>第一篇文章 / 浅谈从零制作博客的一些感想</name>
         <author>熊谷 凌</author>

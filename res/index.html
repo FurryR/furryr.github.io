@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>熊谷凌的博客</title>
     <meta name="description" content="大雨之后，是漫长的潮湿。" />
-    <script src="/static/js/index.js" type="module" async defer></script>
+    <tsconfig src="/tsconfig.browser.json"></tsconfig>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest/dist/typescript-runtime.global.js"
+      raw
+    ></script>
+    <script
+      src="/static/js/index.tsx"
+      type="text/typescript-tsx"
+      async
+      defer
+    ></script>
     <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
     <noscript
       ><link rel="stylesheet" href="/static/css/noscript/main.css"
@@ -16,7 +26,6 @@
       <h1>FurryR 的知识库</h1>
       <p>今天想知道什么呢？</p>
       <search>
-        <!-- TODO: 实现搜索功能 -->
         <input type="text" placeholder="询问我任何事情。" autocomplete="off" />
       </search>
       <nav>

@@ -1,4 +1,6 @@
-import { AnimationElement, Elements } from '/static/js/util/animation.js'
+// @ts-nocheck
+
+import { AnimationElement, Elements } from '/static/js/util/animation.ts'
 
 /**
  * Abstract class for scene (aka page)
