@@ -740,6 +740,8 @@ export class ArchiveScene extends Scene {
       }
     }
 
+    postTitle.element.blur() // 移动端适配
+
     // 同时开始加载 blog 页面（与动画并行）
     Route.instance.handleURL(url)
 
