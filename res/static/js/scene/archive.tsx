@@ -1,241 +1,43 @@
-// @ts-nocheck
-
-import { AnimationElement, Elements, scope } from '/static/js/util/animation.ts'
+import { AnimationElement, scope } from '/static/js/util/animation.ts'
 import { withResolvers } from '/static/js/util/promise.ts'
 
 import { Scene } from '/static/js/scene.ts'
 import { Route } from '/static/js/route.ts'
 import { Effect } from '/static/js/effect.ts'
+import type {
+  AnimationContext,
+  PostData,
+  RunningAnimationScope,
+  TransitionContext
+} from '/static/js/app-types.ts'
 
-const css = `
-.blog-archive-title {
-  margin: 1.5em auto 0.5em;
-  text-align: center;
-  font-size: 2em;
+type ArchiveConfiguration = {
+  posts: PostData[]
 }
 
-.blog-archive-subtitle {
-  margin: 0 auto 2em;
-  text-align: center;
-  font-style: italic;
-  color: gray;
+type ArchiveFilters = {
+  author: string
+  category: string
+  tag: string
 }
-
-.blog-archive-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 1em;
-  min-height: calc(100vh - 400px);
-}
-
-.blog-archive-post {
-  margin-bottom: 1.5em;
-}
-
-.blog-archive-post-title {
-  font-size: 1.8em;
-  margin-bottom: 0.5em;
-  margin-top: 0;
-}
-
-.blog-archive-post-title-link {
-  text-decoration: none;
-  color: inherit;
-  transition: color 0.3s;
-}
-
-.blog-archive-post-title-link:hover {
-  color: #007acc;
-}
-
-.blog-archive-post-metadata {
-  margin-bottom: 1em;
-}
-
-.blog-archive-post-author,
-.blog-archive-post-time,
-.blog-archive-post-category,
-.blog-archive-post-tag {
-  font-size: 0.8em;
-  color: gray;
-  margin: 0;
-  margin-right: 1em;
-  font-style: italic;
-}
-
-.blog-archive-post-author-etc {
-  font-size: 0.5em;
-  margin-left: 5px;
-}
-
-.blog-archive-post-author::before {
-  content: url('/static/res/icons/blog-author.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-
-.blog-archive-post-time::before {
-  content: url('/static/res/icons/blog-time.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-
-.blog-archive-post-category::before {
-  content: url('/static/res/icons/blog-category.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-
-.blog-archive-post-tag::before {
-  content: url('/static/res/icons/blog-tag.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-
-.blog-archive-separator {
-  border: none;
-  border-top: 1px solid #e0e0e0;
-  margin: 2em 0;
-}
-
-.blog-archive-pagination {
-  position: sticky;
-  bottom: 0.5em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1em;
-  padding: 0.8em 1.5em;
-  background: rgba(199, 199, 199, 0.3);
-  backdrop-filter: blur(8px);
-  border-radius: 4px;
-  width: fit-content;
-  margin: 0 auto;
-  z-index: 10;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.blog-archive-pagination-button {
-  background: none;
-  border: none;
-  padding: 0.3em 0.5em;
-  cursor: pointer;
-  color: #007acc;
-  font-size: 1em;
-  transition: color 0.3s;
-  min-width: 2em;
-}
-
-.blog-archive-pagination-button:hover:not(:disabled) {
-  color: #005a9e;
-  text-decoration: underline;
-}
-
-.blog-archive-pagination-button:disabled {
-  color: #ccc;
-  cursor: not-allowed;
-}
-
-.blog-archive-pagination-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  font-size: 1em;
-  color: gray;
-}
-
-.blog-archive-pagination-input {
-  width: 1.5em;
-  text-align: center;
-  border: 1px solid lightgray;
-  border-radius: 4px;
-  padding: 0.2em;
-  font-size: 1em;
-  outline: none;
-  background: transparent;
-}
-
-.blog-archive-pagination-input::-webkit-inner-spin-button,
-.blog-archive-pagination-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.blog-archive-pagination-input[type=number] {
-  -moz-appearance: textfield;
-}
-
-.blog-archive-pagination-input:focus {
-  border-color: #007acc;
-}
-
-.blog-archive-sidebar-title {
-  margin-bottom: 1em;
-}
-
-.blog-archive-sidebar-info {
-  color: gray;
-  font-size: 0.85em;
-  line-height: 1.6em;
-  margin-bottom: 0.8em;
-}
-
-.blog-archive-sidebar-info:last-child {
-  margin-bottom: 0;
-}
-
-.blog-archive-filter-group {
-  margin-bottom: 1.5em;
-}
-
-.blog-archive-filter-label {
-  display: block;
-  margin-bottom: 0.5em;
-  font-weight: bold;
-}
-
-.blog-archive-filter-select {
-  width: 100%;
-  padding: 0.5em;
-  border: 1px solid lightgray;
-  border-radius: 4px;
-  background: transparent;
-  font-size: 0.9em;
-  outline: none;
-  cursor: pointer;
-}
-
-.blog-archive-filter-select:focus {
-  border-color: #007acc;
-}
-
-.blog-archive-no-results {
-  text-align: center;
-  color: gray;
-  font-size: 1.2em;
-  margin: 3em 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .blog-archive-separator {
-    border-top-color: #2c2c2c;
-  }
-}
-`
 
 export class ArchiveScene extends Scene {
   static name = 'ArchiveScene'
+  configuration: Promise<ArchiveConfiguration>
+  effect: Effect
+  currentPage: number
+  postsPerPage: number
+  filters: ArchiveFilters
+  filteredPosts: PostData[]
+  currentAnimationScope: RunningAnimationScope | null
+  postElementsMap: Map<string, unknown>
+  transitionContext: TransitionContext | null
 
-  constructor(main, sidebar, configuration) {
+  constructor(
+    main: HTMLDivElement,
+    sidebar: HTMLDivElement,
+    configuration: Promise<ArchiveConfiguration>
+  ) {
     super(main, sidebar)
     this.configuration = configuration
     this.effect = new Effect()
@@ -252,7 +54,7 @@ export class ArchiveScene extends Scene {
     this.transitionContext = null // 存储过渡上下文
   }
 
-  async new(Animations, fromScene) {
+  async new(Animations: AnimationContext, fromScene: Scene | null) {
     document.title = '归档'
     if (fromScene) {
       await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
@@ -260,10 +62,11 @@ export class ArchiveScene extends Scene {
     }
 
     this.effect.use(() => {
-      const style = document.createElement('style')
-      style.textContent = css
-      document.head.append(style)
-      return () => style.remove()
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = '/static/css/scene/archive.css'
+      document.head.appendChild(link)
+      return () => link.remove()
     })
 
     const loadingIcons = await Scene.Transitions.loading(
@@ -283,9 +86,9 @@ export class ArchiveScene extends Scene {
     this.filteredPosts = configuration.posts
 
     // 提取所有的作者、分类、标签
-    const authors = new Set()
-    const categories = new Set()
-    const tags = new Set()
+    const authors = new Set<string>()
+    const categories = new Set<string>()
+    const tags = new Set<string>()
 
     configuration.posts.forEach(post => {
       post.author.split(',').forEach(author => authors.add(author.trim()))
@@ -440,7 +243,9 @@ export class ArchiveScene extends Scene {
         })
 
         // 为链接添加路由处理
-        const linkElement = postTitle.element.querySelector('a')
+        const linkElement =
+          postTitle.element.querySelector<HTMLAnchorElement>('a')
+        if (!linkElement) continue
         let clicked = false
         linkElement.addEventListener('click', ev => {
           if (clicked) return // 防抖
@@ -451,7 +256,10 @@ export class ArchiveScene extends Scene {
 
           ev.preventDefault()
           linkElement.blur()
-          const url = ev.target.getAttribute('href')
+          const url = (ev.currentTarget as HTMLAnchorElement).getAttribute(
+            'href'
+          )
+          if (!url) return
 
           // 在 archive 侧执行过渡动画
           this.performTransitionAnimation(
@@ -491,7 +299,9 @@ export class ArchiveScene extends Scene {
     }
 
     // 创建分页控件
-    const prevButton = <button class="blog-archive-pagination-button">←</button>
+    const prevButton = (
+      <button class="blog-archive-pagination-button">←</button>
+    ) as AnimationElement<HTMLButtonElement>
     const pageInput = (
       <input
         type="number"
@@ -500,7 +310,7 @@ export class ArchiveScene extends Scene {
         value={this.currentPage.toString()}
         class="blog-archive-pagination-input"
       />
-    )
+    ) as AnimationElement<HTMLInputElement>
     const pageTotal = <span>{`/ ${totalPages()}`}</span>
     const pageInfo = (
       <span class="blog-archive-pagination-info">
@@ -508,7 +318,9 @@ export class ArchiveScene extends Scene {
         {pageTotal}
       </span>
     )
-    const nextButton = <button class="blog-archive-pagination-button">→</button>
+    const nextButton = (
+      <button class="blog-archive-pagination-button">→</button>
+    ) as AnimationElement<HTMLButtonElement>
     const pagination = (
       <div class="blog-archive-pagination" hide>
         {prevButton}
@@ -569,7 +381,7 @@ export class ArchiveScene extends Scene {
       <select class="blog-archive-filter-select">
         <option value="all">全部</option>
       </select>
-    )
+    ) as AnimationElement<HTMLSelectElement>
     const authorFilterGroup = (
       <div class="blog-archive-filter-group" hide>
         <label class="blog-archive-filter-label">作者</label>
@@ -589,7 +401,7 @@ export class ArchiveScene extends Scene {
       <select class="blog-archive-filter-select">
         <option value="all">全部</option>
       </select>
-    )
+    ) as AnimationElement<HTMLSelectElement>
     const categoryFilterGroup = (
       <div class="blog-archive-filter-group" hide>
         <label class="blog-archive-filter-label">分类</label>
@@ -609,7 +421,7 @@ export class ArchiveScene extends Scene {
       <select class="blog-archive-filter-select">
         <option value="all">全部</option>
       </select>
-    )
+    ) as AnimationElement<HTMLSelectElement>
     const tagFilterGroup = (
       <div class="blog-archive-filter-group" hide>
         <label class="blog-archive-filter-label">标签</label>
@@ -670,24 +482,26 @@ export class ArchiveScene extends Scene {
    * 在 archive 侧执行过渡动画，然后导航到 blog
    */
   async performTransitionAnimation(
-    postElement,
-    postTitle,
-    metadata,
-    post,
-    container,
-    url
+    postElement: AnimationElement,
+    postTitle: AnimationElement,
+    metadata: AnimationElement,
+    post: PostData,
+    container: AnimationElement,
+    url: string
   ) {
     // 创建一个 Promise 用于等待 blog 场景准备好接管
-    const transitionReady = withResolvers()
+    const transitionReady = withResolvers<void>()
 
     // 获取所有文章元素
     const allPosts = Array.from(
       this.main.querySelectorAll('.blog-archive-post')
-    )
+    ) as HTMLElement[]
     const otherPosts = allPosts.filter(el => el !== postElement.element)
 
     // 获取分页控件
-    const pagination = this.main.querySelector('.blog-archive-pagination')
+    const pagination = this.main.querySelector<HTMLElement>(
+      '.blog-archive-pagination'
+    )
 
     // 计算位置信息
     const rect = postElement.element.getBoundingClientRect()
@@ -750,8 +564,10 @@ export class ArchiveScene extends Scene {
       // 1. 淡出其他文章和分页控件
       const fadeOutElements = [
         ...otherPosts.map(el => new AnimationElement(el)),
-        ...Array.from(
-          this.main.querySelectorAll('.blog-archive-separator')
+        ...(
+          Array.from(
+            this.main.querySelectorAll('.blog-archive-separator')
+          ) as HTMLElement[]
         ).map(el => new AnimationElement(el))
       ]
 
@@ -760,16 +576,20 @@ export class ArchiveScene extends Scene {
       }
 
       // 同时淡出标题和副标题
-      const archiveTitle = this.main.querySelector('.blog-archive-title')
-      const archiveSubtitle = this.main.querySelector('.blog-archive-subtitle')
+      const archiveTitle = this.main.querySelector<HTMLElement>(
+        '.blog-archive-title'
+      )
+      const archiveSubtitle = this.main.querySelector<HTMLElement>(
+        '.blog-archive-subtitle'
+      )
       if (archiveTitle) fadeOutElements.push(new AnimationElement(archiveTitle))
       if (archiveSubtitle)
         fadeOutElements.push(new AnimationElement(archiveSubtitle))
 
       // 淡出侧边栏
-      const sidebarElements = Array.from(this.sidebar.children).map(
-        el => new AnimationElement(el)
-      )
+      const sidebarElements = (
+        Array.from(this.sidebar.children) as HTMLElement[]
+      ).map(el => new AnimationElement(el))
 
       // 并行执行淡出动画
       Promise.all([
@@ -862,21 +682,22 @@ export class ArchiveScene extends Scene {
   }
 }
 
-export default function (dom) {
+export default function (dom: Promise<Document>) {
   const cached = dom.then(dom => {
     const index = dom.querySelector('index')
+    if (!index) throw new Error('Archive index missing')
     const posts = Array.from(index.querySelectorAll('post')).map(post => ({
-      name: post.querySelector('name').textContent,
-      author: post.querySelector('author').textContent,
-      time: post.querySelector('time').textContent,
-      category: post.querySelector('category').textContent,
-      tag: post.querySelector('tag').textContent,
-      url: post.querySelector('url').textContent
+      name: post.querySelector('name')?.textContent ?? '',
+      author: post.querySelector('author')?.textContent ?? '',
+      time: post.querySelector('time')?.textContent ?? '',
+      category: post.querySelector('category')?.textContent ?? '',
+      tag: post.querySelector('tag')?.textContent ?? '',
+      url: post.querySelector('url')?.textContent ?? ''
     }))
     return { posts }
   })
 
-  return (main, sidebar) => {
+  return (main: HTMLDivElement, sidebar: HTMLDivElement) => {
     return new ArchiveScene(main, sidebar, cached)
   }
 }

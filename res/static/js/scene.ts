@@ -1,11 +1,13 @@
-// @ts-nocheck
-
 import { AnimationElement, Elements } from '/static/js/util/animation.ts'
+import type { AnimationContext } from '/static/js/app-types.ts'
 
 /**
  * Abstract class for scene (aka page)
  */
 export class Scene {
+  main: HTMLDivElement
+  sidebar: HTMLDivElement
+
   static Transitions = {
     /**
      *
@@ -13,22 +15,31 @@ export class Scene {
      * @param {HTMLElement} main
      * @param {HTMLElement} sidebar
      */
-    async loading(Animations, main, sidebar) {
-      let mainLoadingIcon, sidebarLoadingIcon
-      let reuseMainLoadingIcon =
+    async loading(
+      Animations: AnimationContext,
+      main: HTMLElement,
+      sidebar: HTMLElement
+    ) {
+      let mainLoadingIcon: AnimationElement,
+        sidebarLoadingIcon: AnimationElement
+      const reuseMainLoadingIcon =
           main.children.length === 1 &&
-          main.firstElementChild.classList.contains('loading-icon'),
+          main.firstElementChild?.classList.contains('loading-icon'),
         reuseSidebarLoadingIcon =
           sidebar.children.length === 1 &&
-          sidebar.firstElementChild.classList.contains('loading-icon')
+          sidebar.firstElementChild?.classList.contains('loading-icon')
       if (reuseMainLoadingIcon) {
-        mainLoadingIcon = new AnimationElement(main.firstElementChild)
+        mainLoadingIcon = new AnimationElement(
+          main.firstElementChild as HTMLElement
+        )
       } else {
         mainLoadingIcon = Elements.div().class('loading-icon').hide()
         main.appendChild(mainLoadingIcon.element)
       }
       if (reuseSidebarLoadingIcon) {
-        sidebarLoadingIcon = new AnimationElement(sidebar.firstElementChild)
+        sidebarLoadingIcon = new AnimationElement(
+          sidebar.firstElementChild as HTMLElement
+        )
       } else {
         sidebarLoadingIcon = Elements.div().class('loading-icon').hide()
         sidebar.appendChild(sidebarLoadingIcon.element)
@@ -42,8 +53,12 @@ export class Scene {
     }
   }
   static Disposes = {
-    async foldAndFadeout(Animations, main, sidebar) {
-      async function fx(elem) {
+    async foldAndFadeout(
+      Animations: AnimationContext,
+      main: HTMLElement,
+      sidebar: HTMLElement
+    ) {
+      async function fx(elem: HTMLElement) {
         const enforced = new AnimationElement(elem)
         enforced.style('lineHeight', '0')
         await Animations.animate(
@@ -79,12 +94,12 @@ export class Scene {
    * @param {HTMLDivElement} main
    * @param {HTMLDivElement} sidebar
    */
-  constructor(main, sidebar) {
+  constructor(main: HTMLDivElement, sidebar: HTMLDivElement) {
     this.main = main
     this.sidebar = sidebar
   }
 
-  async new(scope, fromScene) {
+  async new(_scope: AnimationContext, _fromScene: Scene | null) {
     throw new Error('Not implemented')
   }
   /**

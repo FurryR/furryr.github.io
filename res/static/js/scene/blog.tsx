@@ -1,168 +1,34 @@
-// @ts-nocheck
-
-import { AnimationElement, Elements } from '/static/js/util/animation.ts'
+import { AnimationElement } from '/static/js/util/animation.ts'
 
 import { withResolvers } from '/static/js/util/promise.ts'
 
 import { Scene } from '/static/js/scene.ts'
 import { Effect } from '/static/js/effect.ts'
+import type {
+  AnimationContext,
+  LoadingIcons,
+  TransitionContext
+} from '/static/js/app-types.ts'
 
-const css = `
-@import url('https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/default.min.css');
-.blog-post-split {
-  border: none;
-  box-shadow: 0 1px 0 0 black;
-  color: black;
-  overflow: visible;
-  text-align: center;
-  height: 5px;
+type BlogConfiguration = {
+  title: string
+  author: string[]
+  time: Date
+  category: string
+  tags: string[]
+  article: HTMLElement
 }
-
-.blog-post-split::after {
-  background-color: var(--blog-background);
-  content: '§';
-  padding: 0 4px;
-  position: relative;
-  top: -3px;
-}
-
-.blog-post-metadata {
-  margin-bottom: 1.5em;
-}
-
-.blog-post-title {
-  font-size: 2em;
-}
-
-.blog-post-author,
-.blog-post-time,
-.blog-post-category,
-.blog-post-tag {
-  font-size: 0.8em;
-  color: gray;
-  margin: 0;
-  margin-right: 1em;
-  font-style: italic;
-}
-
-.blog-post-author-etc {
-  font-size: 0.5em;
-  margin-left: 5px;
-}
-
-.blog-post-author::before {
-  content: url('/static/res/icons/blog-author.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-.blog-post-time::before {
-  content: url('/static/res/icons/blog-time.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-.blog-post-category::before {
-  content: url('/static/res/icons/blog-category.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-.blog-post-tag::before {
-  content: url('/static/res/icons/blog-tag.svg');
-  position: relative;
-  top: 2px;
-  margin-right: 2px;
-  scale: 0.8;
-}
-
-/** Catalog */
-
-.blog-catalog-title {
-  font-size: 1.5em;
-  margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Open Sans',
-    'Helvetica Neue',
-    sans-serif;
-  margin-bottom: 0.5em;
-}
-
-.blog-catalog-list {
-  list-style-type: none;
-  overflow-y: scroll;
-  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
-  height: 80%;
-  padding: 0;
-  margin: 0;
-}
-.blog-catalog-list::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for WebKit browsers */
-}
-
-.blog-catalog-item-h1 {
-  text-decoration: none;
-  margin: 0;
-  color: rgb(50, 50, 50);
-  transition: transform 0.25s ease-out;
-}
-
-.blog-catalog-item-h2 {
-  text-decoration: none;
-  margin-left: 10px;
-  color: rgb(125, 125, 125);
-}
-
-.blog-catalog-item-h3 {
-  text-decoration: none;
-  margin-left: 20px;
-  color: rgb(175, 175, 175);
-}
-
-.blog-catalog-item-empty {
-  color: gray;
-  font-style: italic;
-}
-
-/** For utterances */
-.utterances-placeholder {
-  position: relative;
-  margin-top: 2em;
-}
-
-@media (prefers-color-scheme: dark) {
-  .utterances {
-    filter: invert(1) hue-rotate(180deg);
-  }
-  .blog-post-split::after {
-    color: white;
-    filter: invert(1) hue-rotate(180deg);
-  }
-}
-`
 
 /**
  *
  * @param {HTMLElement} element
  * @returns {{element: HTMLElement; title: string; level: number}[]}
  */
-function generateCatalog(element) {
-  const catalog = []
+function generateCatalog(element: HTMLElement) {
+  const catalog: Array<{ element: Element; title: string; level: number }> = []
   const headers = element.querySelectorAll('h1, h2, h3')
   for (const header of headers) {
-    const title = header.textContent
+    const title = header.textContent ?? ''
     const level = parseInt(header.tagName[1])
     catalog.push({
       element: header,
@@ -175,6 +41,8 @@ function generateCatalog(element) {
 
 export class BlogScene extends Scene {
   static name = 'BlogScene'
+  configuration: Promise<BlogConfiguration>
+  effect: Effect
 
   /**
    *
@@ -182,27 +50,34 @@ export class BlogScene extends Scene {
    * @param {HTMLDivElement} sidebar
    * @param {*} configuration
    */
-  constructor(main, sidebar, configuration) {
+  constructor(
+    main: HTMLDivElement,
+    sidebar: HTMLDivElement,
+    configuration: Promise<BlogConfiguration>
+  ) {
     super(main, sidebar)
     this.configuration = configuration
     this.effect = new Effect()
   }
 
-  async new(Animations, fromScene) {
+  async new(Animations: AnimationContext, fromScene: Scene | null) {
     this.effect.use(() => {
-      const style = document.createElement('style')
-      style.textContent = css
-      document.head.append(style)
-      return () => style.remove()
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = '/static/css/scene/blog.css'
+      document.head.appendChild(link)
+      return () => link.remove()
     })
 
     // 检测是否来自 archive 场景的特殊过渡
     const isArchiveTransition =
       fromScene &&
       fromScene.constructor.name === 'ArchiveScene' &&
-      fromScene.transitionContext
+      (fromScene as Scene & { transitionContext?: TransitionContext })
+        .transitionContext
     const transitionContext = isArchiveTransition
-      ? fromScene.transitionContext
+      ? (fromScene as Scene & { transitionContext: TransitionContext })
+          .transitionContext
       : null
 
     if (fromScene && !isArchiveTransition) {
@@ -210,8 +85,7 @@ export class BlogScene extends Scene {
       await fromScene.dispose()
     }
 
-    let loadingIcons
-    let title, time, category, tag, author, metadata
+    let loadingIcons: LoadingIcons
 
     if (!isArchiveTransition) {
       // 标准过渡：显示 loading 图标
@@ -221,9 +95,9 @@ export class BlogScene extends Scene {
         this.sidebar
       )
     } else {
-      loadingIcons = transitionContext.loadingIcons
+      loadingIcons = transitionContext!.loadingIcons
       // Archive 过渡：等待 archive 侧的动画完成
-      await transitionContext.transitionReady.promise
+      await transitionContext!.transitionReady.promise
     }
 
     let configuration
@@ -236,17 +110,17 @@ export class BlogScene extends Scene {
     if (isArchiveTransition) {
       // 直接淡出 loadingIcon
 
-      await Animations.fadeout(transitionContext.loadingIcons.main, 200)
+      await Animations.fadeout(transitionContext!.loadingIcons.main, 200)
 
       fromScene.dispose() // dispose() is always synchronous here
 
       // 再把 loadingIcon 加回 sidebar
 
-      this.sidebar.appendChild(transitionContext.loadingIcons.sidebar.element)
+      this.sidebar.appendChild(transitionContext!.loadingIcons.sidebar.element)
     }
     document.title = configuration.title
 
-    const article = configuration.article.cloneNode(true)
+    const article = configuration.article.cloneNode(true) as HTMLElement
     const hljsDependency = import(
       'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/core.min.js'
     ).then(v => v.default)
@@ -287,7 +161,7 @@ export class BlogScene extends Scene {
 
     // 如果不是 archive 过渡，则从配置创建 metadata
     // if (!isArchiveTransition) {
-    author =
+    const author =
       configuration.author.length > 1 ? (
         <span
           class="blog-post-author"
@@ -302,28 +176,28 @@ export class BlogScene extends Scene {
           {configuration.author[0]}
         </span>
       )
-    title = (
+    const title = (
       <h1 class="blog-post-title" hide>
         {configuration.title}
       </h1>
     )
-    time = (
+    const time = (
       <span class="blog-post-time" hide>
         {configuration.time.toISOString()}
       </span>
     )
-    category = (
+    const category = (
       <span class="blog-post-category" hide>
         {configuration.category}
       </span>
     )
-    tag = (
+    const tag = (
       <span class="blog-post-tag" hide>
         {configuration.tags.join(' ')}
       </span>
     )
 
-    metadata = (
+    const metadata = (
       <div class="blog-post-metadata">
         {title}
         {author}
@@ -344,8 +218,8 @@ export class BlogScene extends Scene {
       tag.show()
     }
 
-    const articleElementAnimation = withResolvers()
-    const splitElementAnimation = withResolvers()
+    const articleElementAnimation = withResolvers<void>()
+    const splitElementAnimation = withResolvers<void>()
     const articleElement = new AnimationElement(article).hide()
     this.main.appendChild(article)
     const split = <hr class="blog-post-split" hide />
@@ -369,7 +243,7 @@ export class BlogScene extends Scene {
         utterances.element.querySelector('iframe')
       )
       this.effect.use(() => {
-        const receiver = async event => {
+        const receiver = async (event: MessageEvent) => {
           const utterancesOrigin = 'https://utteranc.es'
           if (event.origin !== utterancesOrigin) {
             return
@@ -386,7 +260,10 @@ export class BlogScene extends Scene {
               await Animations.fadein(split, 200)
             else await splitElementAnimation.promise
             utterances.element.style.visibility = ''
-            await Animations.fadein(iframe, 200)
+            await Animations.fadein(
+              iframe as AnimationElement<HTMLIFrameElement>,
+              200
+            )
           }
         }
         window.addEventListener('message', receiver)
@@ -417,7 +294,7 @@ export class BlogScene extends Scene {
       const catalogs = []
       const catalogList = <ul class="blog-catalog-list" hide />
       for (const item of catalog) {
-        let a = (
+        const a = (
           <a href="#" class={`blog-catalog-item-h${item.level}`}>
             {item.title}
           </a>
@@ -487,24 +364,24 @@ export class BlogScene extends Scene {
   }
 }
 
-export default function (dom) {
+export default function (dom: Promise<Document>) {
   const cached = dom.then(dom => {
     const blog = dom.querySelector('blog')
-    const article = dom.querySelector('article')
+    const article = dom.querySelector<HTMLElement>('article')
+    if (!blog || !article) throw new Error('Blog content missing')
     article.remove()
     return {
       title: dom.title,
-      author: blog
-        .querySelector('author')
-        .textContent.split(',')
+      author: (blog.querySelector('author')?.textContent ?? '')
+        .split(',')
         .map(v => v.trim()),
-      time: new Date(blog.querySelector('time').textContent),
-      category: blog.querySelector('category').textContent,
-      tags: blog.querySelector('tag').textContent.split(' '),
+      time: new Date(blog.querySelector('time')?.textContent ?? ''),
+      category: blog.querySelector('category')?.textContent ?? '',
+      tags: (blog.querySelector('tag')?.textContent ?? '').split(' '),
       article
     }
   })
-  return (main, sidebar) => {
+  return (main: HTMLDivElement, sidebar: HTMLDivElement) => {
     return new BlogScene(main, sidebar, cached)
   }
 }

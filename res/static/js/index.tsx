@@ -50,32 +50,44 @@ async function initalizeHeader() {
         {randomHitokoto()}
       </span>
     )
+    const homeLink = (
+      <a class="blog-nav-links-item-a" href="/index.html">
+        主页
+      </a>
+    )
     const home = (
       <li class="blog-nav-links-item" hide>
-        <a class="blog-nav-links-item-a" href="/index.html">
-          主页
-        </a>
+        {homeLink}
       </li>
+    )
+    const archiveLink = (
+      <a class="blog-nav-links-item-a" href="/archive.html">
+        归档
+      </a>
     )
     const archive = (
       <li class="blog-nav-links-item" hide>
-        <a class="blog-nav-links-item-a" href="/archive.html">
-          归档
-        </a>
+        {archiveLink}
       </li>
+    )
+    const friendLink = (
+      <a class="blog-nav-links-item-a" href="/friend.html">
+        友链
+      </a>
     )
     const friend = (
       <li class="blog-nav-links-item" hide>
-        <a class="blog-nav-links-item-a" href="/friend.html">
-          友链
-        </a>
+        {friendLink}
       </li>
+    )
+    const contactLink = (
+      <a class="blog-nav-links-item-a" href="/about.html">
+        关于我
+      </a>
     )
     const contact = (
       <li class="blog-nav-links-item-last" hide>
-        <a class="blog-nav-links-item-a" href="/about.html">
-          关于我
-        </a>
+        {contactLink}
       </li>
     )
     const commandInput = <input class="blog-nav-command" placeholder=">" />
@@ -128,7 +140,7 @@ async function initalizeHeader() {
       await Animations.fadeout(commandDropdown, 200)
       commandDropdown.hide()
     })
-    ;[home, archive].forEach(v =>
+    ;[homeLink, archiveLink].forEach(v =>
       v.element.addEventListener('click', ev => Route.instance.handleAnchor(ev))
     )
     // TODO: search bar
@@ -233,7 +245,7 @@ function initalizeMain() {
 async function initalizeFooter(contentPromise) {
   return scope(async Animations => {
     const footer = Elements.footer([])
-      .content('© 2025 熊谷 凌. All rights reserved.')
+      .content('© 2026 熊谷 凌. All rights reserved.')
       .class('blog-footer')
       .hide()
     document.body.appendChild(footer.element)
@@ -272,7 +284,7 @@ window.Route = Route /** For debug purposes */
 
   // Entry
   const animationContext = scope(async Animations => {
-    const cloned = document.cloneNode(true)
+    const cloned = document.cloneNode(true) as Document
     window.history.replaceState(
       {
         url: window.location.pathname,
@@ -307,7 +319,7 @@ window.Route = Route /** For debug purposes */
       [dummyMark]: true,
       dispose() {}
     }
-    Route.instance = new Route(dummyScene)
+    Route.instance = new Route(dummyScene as any)
     Route.instance.currentAnimation = animationContext
     routeLoaded.resolve()
     await Promise.all([headerPromise, mainResult.promise, footerPromise])

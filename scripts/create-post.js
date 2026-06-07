@@ -37,7 +37,7 @@ async function getNextPostId() {
     }
 
     return Math.max(...ids) + 1
-  } catch (error) {
+  } catch {
     // 如果目录不存在，返回 1
     return 1
   }
@@ -87,7 +87,7 @@ function generatePostHtml(metadata, content = '') {
     </blog>
     <tsconfig src="/tsconfig.browser.json"></tsconfig>
     <script
-      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest/dist/typescript-runtime.global.js"
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest"
       raw
     ></script>
     <script
@@ -238,7 +238,7 @@ async function createPost() {
         cwd: PROJECT_ROOT,
         stdio: 'inherit'
       })
-    } catch (error) {
+    } catch {
       console.error('\n❌ 更新归档页面失败:', error.message)
       console.log('💡 请手动运行: npm run update-archive')
     }

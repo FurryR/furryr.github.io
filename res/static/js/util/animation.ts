@@ -1,13 +1,31 @@
-// @ts-nocheck
+export type AnimationRunner = {
+  animate(
+    elem: AnimationElement,
+    keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
+    options: number | KeyframeAnimationOptions
+  ): Promise<void>
+  wait(ms: number): Promise<void>
+  fadein(
+    elem: AnimationElement,
+    duration: number,
+    easing?: string
+  ): Promise<void>
+  fadeout(
+    elem: AnimationElement,
+    duration: number,
+    easing?: string
+  ): Promise<void>
+}
 
-/**
- * @typedef { Promise<void> | { abort: () => void }} AbortableAnimation
- */
+export type AnimationScope = {
+  promise: Promise<void>
+  skip(): void
+  readonly skipped: boolean
+}
 
-/**
- * @template {HTMLElement} T
- */
-export class AnimationElement<T extends Element = HTMLElement> {
+type AnimationAbort = () => void
+
+export class AnimationElement<T extends HTMLElement = HTMLElement> {
   element: T
 
   /**
@@ -18,11 +36,7 @@ export class AnimationElement<T extends Element = HTMLElement> {
     this.element = elem
   }
 
-  /**
-   *
-   * @param {AnimationElement[]?} elems
-   */
-  child(elems) {
+  child(elems?: AnimationElement[]) {
     if (!elems) return this
     for (const elem of elems) {
       this.element.appendChild(elem.element)
@@ -37,39 +51,22 @@ export class AnimationElement<T extends Element = HTMLElement> {
   show() {
     return this.style('visibility', '')
   }
-  /**
-   *
-   * @param {string} text
-   */
-  content(text) {
+  content(text: string) {
     this.element.textContent = text
     return this
   }
-  /**
-   *
-   * @template {keyof T} KeyT
-   * @param {KeyT} key
-   * @param {T[KeyT]} value
-   */
-  with(key, value) {
+  with<KeyT extends keyof T>(key: KeyT, value: T[KeyT]) {
     this.element[key] = value
     return this
   }
-  /**
-   *
-   * @param {string} className
-   */
-  class(className) {
+  class(className: string) {
     this.element.className = className
     return this
   }
-  /**
-   *
-   * @template {keyof CSSStyleDeclaration} T
-   * @param {T} key
-   * @param {CSSStyleDeclaration[T]} value
-   */
-  style(key, value) {
+  style<KeyT extends keyof CSSStyleDeclaration>(
+    key: KeyT,
+    value: CSSStyleDeclaration[KeyT]
+  ) {
     this.element.style[key] = value
     return this
   }
@@ -103,7 +100,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLDivElement>}
    */
-  div(child) {
+  div(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('div')).child(child)
   },
   /**
@@ -111,7 +108,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLElement>}
    */
-  header(child) {
+  header(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('header')).child(child)
   },
 
@@ -120,7 +117,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLElement>}
    */
-  footer(child) {
+  footer(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('footer')).child(child)
   },
 
@@ -129,7 +126,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLElement>}
    */
-  nav(child) {
+  nav(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('nav')).child(child)
   },
 
@@ -138,7 +135,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLUListElement>}
    */
-  ul(child) {
+  ul(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('ul')).child(child)
   },
   /**
@@ -146,7 +143,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLLIElement>}
    */
-  li(child) {
+  li(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('li')).child(child)
   },
 
@@ -155,7 +152,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLAnchorElement>}
    */
-  a(child) {
+  a(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('a')).child(child)
   },
 
@@ -164,7 +161,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLSpanElement>}
    */
-  span(child) {
+  span(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('span')).child(child)
   },
 
@@ -173,28 +170,28 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLImageElement>}
    */
-  img(child) {
+  img(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('img')).child(child)
   },
   /**
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLParagraphElement>}
    */
-  p(child) {
+  p(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('p')).child(child)
   },
   /**
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLHeadingElement>}
    */
-  h1(child) {
+  h1(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('h1')).child(child)
   },
   /**
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLHeadingElement>}
    */
-  h2(child) {
+  h2(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('h2')).child(child)
   },
   /**
@@ -202,14 +199,14 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLHeadingElement>}
    */
-  h3(child) {
+  h3(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('h3')).child(child)
   },
   /**
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLHeadingElement>}
    */
-  h4(child) {
+  h4(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('h4')).child(child)
   },
 
@@ -217,7 +214,7 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLElement>}
    */
-  main(child) {
+  main(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('main')).child(child)
   },
 
@@ -240,51 +237,55 @@ export const Elements = {
    * @param {AnimationElement[]?} child
    * @returns {AnimationElement<HTMLLabelElement>}
    */
-  label(child) {
+  label(child?: AnimationElement[]) {
     return new AnimationElement(document.createElement('label')).child(child)
   }
 }
 
-export function scope(fn) {
+export function scope(
+  fn: (Animations: AnimationRunner) => Promise<void>
+): AnimationScope {
   let skipped = false
-  let runningAnimations = []
-  const preprocess = callback => {
-    return function (...args) {
-      if (skipped) return Promise.resolve()
-      return callback(...args)
-    }
-  }
-  const animate = preprocess((elem, keyframes, options) => {
+  let runningAnimations: AnimationAbort[] = []
+  const animate: AnimationRunner['animate'] = (elem, keyframes, options) => {
+    if (skipped) return Promise.resolve()
     const animation = elem.element.animate(keyframes, options)
 
-    return new Promise(resolve => {
-      animation.addEventListener('finish', () => {
-        runningAnimations = runningAnimations.filter(a => a !== animation)
-        resolve()
-      })
-      runningAnimations.push(() => {
+    return new Promise<void>(resolve => {
+      const abort = () => {
         animation.cancel()
         resolve()
+      }
+      animation.addEventListener('finish', () => {
+        runningAnimations = runningAnimations.filter(a => a !== abort)
+        resolve()
       })
+      runningAnimations.push(abort)
     })
-  })
+  }
 
-  const wait = preprocess(ms => {
-    return new Promise(resolve => {
-      runningAnimations.push(resolve)
+  const wait: AnimationRunner['wait'] = ms => {
+    if (skipped) return Promise.resolve()
+    return new Promise<void>(resolve => {
+      const abort = resolve
+      runningAnimations.push(abort)
       const end = performance.now() + ms
       requestAnimationFrame(function handle(timestamp) {
         if (skipped || timestamp >= end) {
-          runningAnimations = runningAnimations.filter(a => a !== resolve)
+          runningAnimations = runningAnimations.filter(a => a !== abort)
           resolve()
         } else {
           requestAnimationFrame(handle)
         }
       })
     })
-  })
+  }
 
-  const fadein = preprocess((elem, duration, easing = 'ease-out') => {
+  const fadein: AnimationRunner['fadein'] = (
+    elem,
+    duration,
+    easing = 'ease-out'
+  ) => {
     if (skipped) return Promise.resolve()
     elem.show()
     return animate(
@@ -302,9 +303,13 @@ export function scope(fn) {
         duration
       }
     )
-  })
+  }
 
-  const fadeout = preprocess((elem, duration, easing = 'ease-out') => {
+  const fadeout: AnimationRunner['fadeout'] = (
+    elem,
+    duration,
+    easing = 'ease-out'
+  ) => {
     if (skipped) return Promise.resolve()
     return animate(
       elem,
@@ -321,7 +326,7 @@ export function scope(fn) {
         duration
       }
     )
-  })
+  }
 
   const obj = {
     animate,

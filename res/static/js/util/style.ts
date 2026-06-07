@@ -1,10 +1,10 @@
-// @ts-nocheck
-
-export function addStyle(url) {
+export function addStyle(
+  url: URL | string
+): Promise<HTMLLinkElement | HTMLStyleElement> {
   if (url instanceof URL) {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = url
+    link.href = url.href
     document.head.appendChild(link)
     return new Promise((resolve, reject) => {
       link.addEventListener('load', () => resolve(link))

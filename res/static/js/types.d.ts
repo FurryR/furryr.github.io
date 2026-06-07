@@ -1,7 +1,7 @@
 import type { AnimationElement } from './util/animation.ts'
 
 export type JsxChild =
-  | AnimationElement<Element>
+  | AnimationElement<HTMLElement>
   | Node
   | string
   | number

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * This component is created by utteranc.es and optimized by @FurryR for better animations.
  */
@@ -29,7 +27,14 @@ style.textContent = `
 `
 document.head.appendChild(style)
 
-export default function Utterances(configuration) {
+export type UtterancesConfiguration = Record<string, string>
+
+type UtterancesMessage = {
+  type?: string
+  height?: number
+}
+
+export default function Utterances(configuration: UtterancesConfiguration) {
   const url = new URL(window.location.href)
   const session = url.searchParams.get('utterances')
   if (session) {
@@ -37,8 +42,10 @@ export default function Utterances(configuration) {
     url.searchParams.delete('utterances')
     window.history.replaceState(undefined, document.title, url.href)
   }
-  const attrs = Object.assign({}, configuration)
-  const canonicalLink = document.querySelector(`link[rel='canonical']`)
+  const attrs: Record<string, string> = Object.assign({}, configuration)
+  const canonicalLink = document.querySelector<HTMLLinkElement>(
+    `link[rel='canonical']`
+  )
   if (attrs.theme === 'preferred-color-scheme') {
     attrs.theme = window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'github-dark'
@@ -53,7 +60,9 @@ export default function Utterances(configuration) {
       ? 'index'
       : url.pathname.substring(1).replace(/\.\w+$/, '')
   attrs.title = document.title
-  const descriptionMeta = document.querySelector(`meta[name='description']`)
+  const descriptionMeta = document.querySelector<HTMLMetaElement>(
+    `meta[name='description']`
+  )
   attrs.description = descriptionMeta ? descriptionMeta.content : ''
   const len = encodeURIComponent(attrs.description).length
   if (len > 1000) {
@@ -62,7 +71,7 @@ export default function Utterances(configuration) {
       Math.floor((attrs.description.length * 1000) / len)
     )
   }
-  const ogtitleMeta = document.querySelector(
+  const ogtitleMeta = document.querySelector<HTMLMetaElement>(
     `meta[property='og:title'],meta[name='og:title']`
   )
   attrs['og:title'] = ogtitleMeta ? ogtitleMeta.content : ''
@@ -80,7 +89,7 @@ export default function Utterances(configuration) {
   iframe.src = `${frameUrl}?${new URLSearchParams(attrs)}`
   container.appendChild(iframe)
   // adjust the iframe's height when the height of it's content changes
-  const handle = event => {
+  const handle = (event: MessageEvent<UtterancesMessage>) => {
     if (event.origin !== utterancesOrigin) {
       return
     }

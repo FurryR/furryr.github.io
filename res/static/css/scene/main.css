@@ -1,0 +1,131 @@
+.blog-main-intro {
+  text-align: center;
+  text-wrap-mode: nowrap;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.blog-index-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.blog-index-title {
+  font-size: 2.5em;
+  margin-bottom: 0.3em;
+  font-weight: 600;
+}
+
+.blog-index-subtitle {
+  font-size: 1em;
+  font-style: italic;
+  color: gray;
+  margin-bottom: 2em;
+}
+
+.blog-index-search {
+  margin-bottom: 2em;
+  position: relative;
+}
+
+.blog-index-search-input {
+  width: 70%;
+  max-width: 600px;
+  padding: 0.8em 1em;
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: border-color 0.3s;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.blog-index-search-input:focus {
+  outline: none;
+  border-color: #1d5685;
+}
+
+.blog-index-search-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  max-width: 600px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: rgb(240, 240, 240);
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+.blog-index-search-dropdown-loading {
+  padding: 2em;
+  text-align: center;
+}
+
+.blog-index-search-dropdown-item {
+  padding: 0.8em 1em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.blog-index-search-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.blog-index-search-dropdown-item:hover,
+.blog-index-search-dropdown-item.selected {
+  background-color: rgba(29, 86, 133, 0.1);
+}
+
+.blog-index-search-dropdown-item-title {
+  font-weight: 500;
+  margin-bottom: 0.3em;
+  color: #1d5685;
+}
+
+.blog-index-search-dropdown-item-meta {
+  font-size: 0.85em;
+  color: gray;
+}
+
+.blog-index-search-dropdown-empty {
+  padding: 2em;
+  text-align: center;
+  color: gray;
+  font-style: italic;
+}
+
+.blog-index-nav {
+  margin-top: 1em;
+}
+
+.blog-index-nav-link {
+  text-decoration: none;
+  color: #1d5685;
+  font-size: 1em;
+  transition: color 0.3s;
+}
+
+.blog-index-nav-link:hover {
+  color: #007acc;
+}
+
+.blog-index-sidebar-title {
+  margin-bottom: 1em;
+}
+
+.blog-index-sidebar-avatar {
+  width: 100%;
+  border-radius: 5px;
+}

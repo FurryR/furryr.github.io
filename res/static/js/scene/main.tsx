@@ -1,150 +1,29 @@
-// @ts-nocheck
-
-import { Elements } from '/static/js/util/animation.ts'
+import { AnimationElement } from '/static/js/util/animation.ts'
 
 import { Scene } from '/static/js/scene.ts'
 import { Route } from '/static/js/route.ts'
 import { Effect } from '/static/js/effect.ts'
-
-const css = `
-.blog-main-intro {
-  text-align: center;
-  text-wrap-mode: nowrap;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.blog-index-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 800px;
-  text-align: center;
-}
-
-.blog-index-title {
-  font-size: 2.5em;
-  margin-bottom: 0.3em;
-  font-weight: 600;
-}
-
-.blog-index-subtitle {
-  font-size: 1em;
-  font-style: italic;
-  color: gray;
-  margin-bottom: 2em;
-}
-
-.blog-index-search {
-  margin-bottom: 2em;
-  position: relative;
-}
-
-.blog-index-search-input {
-  width: 70%;
-  max-width: 600px;
-  padding: 0.8em 1em;
-  border: 1px solid lightgray;
-  border-radius: 8px;
-  font-size: 1em;
-  transition: border-color 0.3s;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.blog-index-search-input:focus {
-  outline: none;
-  border-color: #1d5685;
-}
-
-.blog-index-search-dropdown {
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 70%;
-  max-width: 600px;
-  max-height: 400px;
-  overflow-y: auto;
-  background: rgb(240, 240, 240);
-  border: 1px solid lightgray;
-  border-radius: 8px;
-  z-index: 1000;
-}
-
-.blog-index-search-dropdown-loading {
-  padding: 2em;
-  text-align: center;
-}
-
-.blog-index-search-dropdown-item {
-  padding: 0.8em 1em;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  text-align: left;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.blog-index-search-dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.blog-index-search-dropdown-item:hover,
-.blog-index-search-dropdown-item.selected {
-  background-color: rgba(29, 86, 133, 0.1);
-}
-
-.blog-index-search-dropdown-item-title {
-  font-weight: 500;
-  margin-bottom: 0.3em;
-  color: #1d5685;
-}
-
-.blog-index-search-dropdown-item-meta {
-  font-size: 0.85em;
-  color: gray;
-}
-
-.blog-index-search-dropdown-empty {
-  padding: 2em;
-  text-align: center;
-  color: gray;
-  font-style: italic;
-}
-
-.blog-index-nav {
-  margin-top: 1em;
-}
-
-.blog-index-nav-link {
-  text-decoration: none;
-  color: #1d5685;
-  font-size: 1em;
-  transition: color 0.3s;
-}
-
-.blog-index-nav-link:hover {
-  color: #007acc;
-}
-
-.blog-index-sidebar-title {
-  margin-bottom: 1em;
-}
-
-.blog-index-sidebar-avatar {
-  width: 100%;
-  border-radius: 5px;
-}
-
-`
+import type { AnimationContext, PostData } from '/static/js/app-types.ts'
 
 export class MainScene extends Scene {
   static name = 'MainScene'
+  configuration: Promise<{
+    mainContent: HTMLElement
+    sideContent: HTMLElement
+  }>
+  effect: Effect
+  postsData: PostData[] | null
+  selectedIndex: number
+  filteredPosts: PostData[]
 
-  constructor(main, sidebar, configuration) {
+  constructor(
+    main: HTMLDivElement,
+    sidebar: HTMLDivElement,
+    configuration: Promise<{
+      mainContent: HTMLElement
+      sideContent: HTMLElement
+    }>
+  ) {
     super(main, sidebar)
     this.configuration = configuration
     this.effect = new Effect()
@@ -153,7 +32,7 @@ export class MainScene extends Scene {
     this.filteredPosts = []
   }
 
-  async loadPostsData() {
+  async loadPostsData(): Promise<PostData[]> {
     if (this.postsData) {
       return this.postsData
     }
@@ -163,13 +42,14 @@ export class MainScene extends Scene {
       const text = await response.text()
       const dom = new DOMParser().parseFromString(text, 'text/html')
       const index = dom.querySelector('index')
+      if (!index) return []
       const posts = Array.from(index.querySelectorAll('post')).map(post => ({
-        name: post.querySelector('name').textContent,
-        author: post.querySelector('author').textContent,
-        time: post.querySelector('time').textContent,
-        category: post.querySelector('category').textContent,
-        tag: post.querySelector('tag').textContent,
-        url: post.querySelector('url').textContent
+        name: post.querySelector('name')?.textContent ?? '',
+        author: post.querySelector('author')?.textContent ?? '',
+        time: post.querySelector('time')?.textContent ?? '',
+        category: post.querySelector('category')?.textContent ?? '',
+        tag: post.querySelector('tag')?.textContent ?? '',
+        url: post.querySelector('url')?.textContent ?? ''
       }))
       this.postsData = posts
       return posts
@@ -179,7 +59,7 @@ export class MainScene extends Scene {
     }
   }
 
-  filterPosts(query) {
+  filterPosts(query: string) {
     if (!this.postsData || !query.trim()) {
       return []
     }
@@ -196,7 +76,7 @@ export class MainScene extends Scene {
       .slice(0, 10) // 最多显示10个结果
   }
 
-  createDropdownItem(post, index) {
+  createDropdownItem(post: PostData, index: number) {
     const item = (
       <div class="blog-index-search-dropdown-item">
         <div class="blog-index-search-dropdown-item-title">{post.name}</div>
@@ -205,12 +85,12 @@ export class MainScene extends Scene {
         </div>
       </div>
     )
-    item.element.dataset.index = index
+    item.element.dataset.index = index.toString()
     item.element.dataset.url = post.url
     return item.element
   }
 
-  updateDropdown(dropdown, posts) {
+  updateDropdown(dropdown: HTMLElement, posts: PostData[]) {
     dropdown.innerHTML = ''
 
     if (posts.length === 0) {
@@ -230,7 +110,7 @@ export class MainScene extends Scene {
     this.selectedIndex = -1
   }
 
-  selectItem(index) {
+  selectItem(index: number) {
     const dropdown = document.querySelector('.blog-index-search-dropdown')
     if (!dropdown) return
 
@@ -246,21 +126,22 @@ export class MainScene extends Scene {
     }
   }
 
-  navigateToPost(url) {
+  navigateToPost(url: string) {
     Route.instance.handleURL(url)
   }
 
-  async new(Animations, fromScene) {
+  async new(Animations: AnimationContext, fromScene: Scene | null) {
     document.title = '熊谷凌的博客'
     if (fromScene) {
       await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
       await fromScene.dispose()
     }
     this.effect.use(() => {
-      const style = document.createElement('style')
-      style.textContent = css
-      document.head.append(style)
-      return () => style.remove()
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = '/static/css/scene/main.css'
+      document.head.appendChild(link)
+      return () => link.remove()
     })
     const loadingIcons = await Scene.Transitions.loading(
       Animations,
@@ -311,14 +192,16 @@ export class MainScene extends Scene {
     )
 
     // 搜索框
-    const searchInput = mainContent.querySelector('search input')
+    const searchInput = mainContent.querySelector(
+      'search input'
+    ) as HTMLInputElement | null
     const searchInputElement = (
       <input
         type="text"
         placeholder={searchInput ? searchInput.placeholder : '询问我任何事情。'}
         class="blog-index-search-input"
       />
-    )
+    ) as AnimationElement<HTMLInputElement>
 
     // 搜索下拉框
     const dropdown = <div class="blog-index-search-dropdown" />
@@ -365,7 +248,7 @@ export class MainScene extends Scene {
     })
 
     searchInputElement.element.addEventListener('input', async ev => {
-      const query = ev.target.value
+      const query = (ev.target as HTMLInputElement).value
 
       if (!query.trim()) {
         dropdownElement.style.display = 'none'
@@ -429,7 +312,9 @@ export class MainScene extends Scene {
 
     // 点击下拉项导航
     dropdownElement.addEventListener('click', ev => {
-      const item = ev.target.closest('.blog-index-search-dropdown-item')
+      const item = (ev.target as Element).closest<HTMLElement>(
+        '.blog-index-search-dropdown-item'
+      )
       if (item && item.dataset.url) {
         this.navigateToPost(item.dataset.url)
       }
@@ -450,7 +335,6 @@ export class MainScene extends Scene {
     )
     const nav = <nav class="blog-index-nav">{navLinkElement}</nav>
 
-    // 使用容器包裹所有内容以实现更好的布局
     const container = (
       <div class="blog-index-container" hide>
         {title}
@@ -464,7 +348,10 @@ export class MainScene extends Scene {
 
     // 为导航链接添加路由处理
     navLinkElement.element.addEventListener('click', ev => {
-      if (new URL(ev.target.href).origin === location.origin) {
+      if (
+        new URL((ev.currentTarget as HTMLAnchorElement).href).origin ===
+        location.origin
+      ) {
         Route.instance.handleAnchor(ev)
       }
     })
@@ -476,26 +363,128 @@ export class MainScene extends Scene {
     await Animations.fadeout(loadingIcons.sidebar, 200)
     loadingIcons.sidebar.element.remove()
 
-    // 生成侧边栏内容
-    const sidebarTitle = (
-      <h2 class="blog-index-sidebar-title" hide>
-        {sideContent.querySelector('h2').textContent}
-      </h2>
-    )
-    const sidebarAvatar = (
-      <img
-        src={sideContent.querySelector('img').src}
-        alt={sideContent.querySelector('img').alt}
-        class="blog-index-sidebar-avatar"
+    // 时钟
+    const clockWrap = (
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
         hide
       />
     )
 
-    this.sidebar.appendChild(sidebarTitle.element)
-    this.sidebar.appendChild(sidebarAvatar.element)
+    const ns = 'http://www.w3.org/2000/svg'
+    const svg = document.createElementNS(ns, 'svg')
+    svg.setAttribute('viewBox', '0 0 100 100')
+    svg.style.display = 'block'
+    svg.style.width = '120px'
+    svg.style.height = '120px'
 
-    await Animations.fadein(sidebarTitle, 200)
-    await Animations.fadein(sidebarAvatar, 200)
+    function el(tag: string) {
+      return document.createElementNS(ns, tag)
+    }
+
+    // 表盘
+    const face = el('circle')
+    face.setAttribute('cx', '50')
+    face.setAttribute('cy', '50')
+    face.setAttribute('r', '48')
+    face.setAttribute('fill', 'none')
+    face.setAttribute('stroke', 'currentColor')
+    face.setAttribute('stroke-width', '1')
+    svg.appendChild(face)
+
+    // 刻度
+    const ticks = el('g')
+    for (let i = 0; i < 12; i++) {
+      const angle = (i * 30 - 90) * (Math.PI / 180)
+      const r1 = 44
+      const r2 = i % 3 === 0 ? 39 : 41
+      const tick = el('line')
+      tick.setAttribute('x1', String(50 + r1 * Math.cos(angle)))
+      tick.setAttribute('y1', String(50 + r1 * Math.sin(angle)))
+      tick.setAttribute('x2', String(50 + r2 * Math.cos(angle)))
+      tick.setAttribute('y2', String(50 + r2 * Math.sin(angle)))
+      tick.setAttribute('stroke', 'currentColor')
+      tick.setAttribute('stroke-width', i % 3 === 0 ? '2' : '1')
+      ticks.appendChild(tick)
+    }
+    svg.appendChild(ticks)
+
+    // 指针
+    const hourHand = el('line')
+    hourHand.setAttribute('x1', '50')
+    hourHand.setAttribute('y1', '50')
+    hourHand.setAttribute('x2', '50')
+    hourHand.setAttribute('y2', '30')
+    hourHand.setAttribute('stroke', 'currentColor')
+    hourHand.setAttribute('stroke-width', '3')
+    hourHand.setAttribute('stroke-linecap', 'round')
+    svg.appendChild(hourHand)
+
+    const minuteHand = el('line')
+    minuteHand.setAttribute('x1', '50')
+    minuteHand.setAttribute('y1', '50')
+    minuteHand.setAttribute('x2', '50')
+    minuteHand.setAttribute('y2', '18')
+    minuteHand.setAttribute('stroke', 'currentColor')
+    minuteHand.setAttribute('stroke-width', '2')
+    minuteHand.setAttribute('stroke-linecap', 'round')
+    svg.appendChild(minuteHand)
+
+    const secondHand = el('line')
+    secondHand.setAttribute('x1', '50')
+    secondHand.setAttribute('y1', '50')
+    secondHand.setAttribute('x2', '50')
+    secondHand.setAttribute('y2', '14')
+    secondHand.setAttribute('stroke', 'currentColor')
+    secondHand.setAttribute('stroke-width', '1')
+    secondHand.setAttribute('stroke-linecap', 'round')
+    svg.appendChild(secondHand)
+
+    // 中心圆点
+    const dot = el('circle')
+    dot.setAttribute('cx', '50')
+    dot.setAttribute('cy', '50')
+    dot.setAttribute('r', '2')
+    dot.setAttribute('fill', 'currentColor')
+    svg.appendChild(dot)
+
+    clockWrap.element.appendChild(svg)
+
+    const update = () => {
+      const now = new Date()
+      const h = now.getHours() % 12
+      const m = now.getMinutes()
+      const s = now.getSeconds()
+      const ms = now.getMilliseconds()
+      hourHand.setAttribute('transform', `rotate(${h * 30 + m * 0.5}, 50, 50)`)
+      minuteHand.setAttribute('transform', `rotate(${m * 6 + s * 0.1}, 50, 50)`)
+      secondHand.setAttribute(
+        'transform',
+        `rotate(${s * 6 + ms * 0.006}, 50, 50)`
+      )
+    }
+    update()
+    this.effect.use(() => {
+      const id = setInterval(update, 1000)
+      return () => clearInterval(id)
+    })
+
+    this.sidebar.appendChild(clockWrap.element)
+    await Animations.fadein(clockWrap, 200)
+
+    if (sideContent.children.length > 0 || sideContent.textContent?.trim()) {
+      const sidebar = new AnimationElement(sideContent)
+      this.sidebar.appendChild(sidebar.element)
+      await Animations.fadein(sidebar, 200)
+    }
   }
 
   dispose() {
@@ -509,10 +498,12 @@ export class MainScene extends Scene {
   }
 }
 
-export default function (dom) {
+export default function (dom: Promise<Document>) {
   const cached = dom.then(dom => {
-    const mainContent = dom.querySelector('main')
-    const sideContent = dom.querySelector('sidebar')
+    const mainContent = dom.querySelector<HTMLElement>('main')
+    const sideContent = dom.querySelector<HTMLElement>('sidebar')
+    if (!mainContent || !sideContent)
+      throw new Error('Main scene content missing')
     mainContent.remove()
     sideContent.remove()
     return {
@@ -520,7 +511,7 @@ export default function (dom) {
       sideContent
     }
   })
-  return (main, sidebar) => {
+  return (main: HTMLDivElement, sidebar: HTMLDivElement) => {
     return new MainScene(main, sidebar, cached)
   }
 }
