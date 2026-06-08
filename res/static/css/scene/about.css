@@ -1,0 +1,173 @@
+.blog-about-title {
+  font-size: 2em;
+  margin: 0;
+}
+
+.blog-about-title rt {
+  font-size: 0.35em;
+  color: gray;
+}
+
+.blog-about-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  align-items: start;
+  gap: 2.5em;
+  max-width: 800px;
+  margin-top: 1.5em;
+  padding: 0 1em;
+}
+
+.blog-about-split {
+  border: none;
+  box-shadow: 0 1px 0 0 black;
+  color: black;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
+}
+
+.blog-about-main {
+  margin-top: 1em;
+}
+
+.blog-about-main h2 {
+  font-size: 1.3em;
+  margin: 1.8em 0 0.6em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.blog-about-main h2:first-of-type {
+  margin-top: 1.2em;
+}
+
+.blog-about-main p {
+  margin: 0 0 1em;
+  color: #444;
+}
+
+.blog-about-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0 0 1.5em;
+}
+
+.blog-about-tags span {
+  color: #1d5685;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.blog-about-main ul {
+  margin: 0 0 1.5em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+
+.blog-about-main li {
+  margin-bottom: 0.8em;
+  padding-left: 1em;
+  position: relative;
+  color: #444;
+  line-height: 1.7em;
+}
+
+.blog-about-main li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: #999;
+}
+
+.blog-about-main a {
+  color: #1d5685;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.blog-about-main a:hover {
+  color: #007acc;
+}
+
+.blog-about-main strong {
+  color: #222;
+  font-weight: 600;
+}
+
+.blog-about-quote {
+  margin: 0 0 1.2em;
+  padding: 0.6em 1em;
+  border-left: 3px solid #ccc;
+  color: #666;
+  background: rgba(128, 128, 128, 0.06);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.95em;
+}
+
+.blog-about-link-desc {
+  color: #999;
+  font-size: 0.9em;
+}
+
+.blog-about-split::after {
+  background-color: var(--blog-background);
+  content: '§';
+  padding: 0 4px;
+  position: relative;
+  top: -7px;
+}
+
+.blog-about-portrait-panel {
+  display: flex;
+  justify-content: center;
+}
+
+.blog-about-portrait {
+  width: 100%;
+  max-width: 240px;
+  border-radius: 8px;
+}
+
+.blog-about-content {
+  color: #333;
+  font-size: 1em;
+  line-height: 1.8em;
+}
+
+.blog-about-sidebar-title {
+  margin-bottom: 1em;
+}
+
+.blog-about-sidebar-text {
+  color: gray;
+  font-size: 0.85em;
+  line-height: 1.6em;
+  margin-bottom: 1em;
+}
+
+.blog-about-sidebar-link {
+  color: #1d5685;
+  font-size: 0.9em;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.blog-about-sidebar-link:hover {
+  color: #007acc;
+}
+
+@media (max-width: 650px) {
+  .blog-about-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5em;
+    text-align: left;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .blog-about-split::after {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}

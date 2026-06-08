@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>熊谷凌的博客 / 关于我</title>
+    <meta
+      name="description"
+      content="关于熊谷凌的简短介绍，包含个人兴趣、技术方向和这个博客的用途。"
+    />
+    <tsconfig src="/tsconfig.browser.json"></tsconfig>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest"
+      raw
+    ></script>
+    <script
+      src="/static/js/index.tsx"
+      type="text/typescript-tsx"
+      async
+      defer
+    ></script>
+    <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
+    <noscript
+      ><link rel="stylesheet" href="/static/css/noscript/about.css"
+    /></noscript>
+  </head>
+  <body>
+    <main>
+      <div class="blog-about-layout">
+        <div class="blog-about-portrait-panel">
+          <img
+            class="blog-about-portrait"
+            src="/static/res/furryr.png"
+            alt="熊谷凌"
+          />
+        </div>
+        <article class="blog-about-content">
+          <h1 class="blog-about-title">
+            <ruby>熊谷<rp>(</rp><rt>くまがい</rt><rp>)</rp>&nbsp;</ruby
+            ><ruby>凌<rp>(</rp><rt>しのぎ</rt><rp>)</rp></ruby>
+          </h1>
+          <hr class="blog-about-split" />
+          <div class="blog-about-main">
+            <blockquote class="blog-about-quote">
+              <span style="font-style: italic"
+                >何もかもが鮮やかに見えて　すぐに消えてしまう</span
+              >
+            </blockquote>
+            <p>
+              我是熊谷凌（FurryR），一个喜欢折腾的全栈工程师。平时写
+              TypeScript、Rust、偶尔碰一下 Android
+              开发。这个博客是我的笔记本兼实验场——记录开源项目、前端实验、和那些不太正式的技术想法。
+            </p>
+            <p class="blog-about-tags">
+              <span>#开源</span>
+              <span>#TypeScript</span>
+              <span>#Rust</span>
+              <span>#前端</span>
+              <span>#C++</span>
+              <span>#Android</span>
+            </p>
+            <h2>找到我</h2>
+            <ul class="blog-about-links">
+              <li>
+                <strong>Email</strong>
+                <span class="blog-about-link-desc"
+                  >&mdash;
+                  <a href="mailto:awathefox@gmail.com"
+                    >awathefox@gmail.com</a
+                  ></span
+                >
+              </li>
+            </ul>
+            <h2>GPG</h2>
+            <pre><code lang="bash">gpg --recv-keys FA555ED01107F23673E035D9FA3047EB03233B9F</code></pre>
+          </div>
+        </article>
+      </div>
+    </main>
+    <sidebar>
+      <h2 class="blog-about-sidebar-title">$ whoami</h2>
+      <p class="blog-about-sidebar-text">
+        熊谷凌。写代码、拆东西、做实验。这个博客是我的技术笔记本。
+      </p>
+      <a class="blog-about-sidebar-link" href="/archive.html">查看文章归档</a>
+    </sidebar>
+  </body>
+</html>

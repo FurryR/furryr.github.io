@@ -324,16 +324,12 @@ export class MainScene extends Scene {
     search.element.appendChild(dropdownElement)
 
     // 导航链接
-    const navLink = mainContent.querySelector('nav a')
-    const navLinkElement = (
-      <a
-        href={navLink ? navLink.getAttribute('href') : '/archive.html'}
-        class="blog-index-nav-link"
-      >
-        {navLink ? navLink.textContent : '查看所有文章'}
+    const archiveLink = (
+      <a href="/archive.html" class="blog-index-nav-link">
+        查看所有文章
       </a>
     )
-    const nav = <nav class="blog-index-nav">{navLinkElement}</nav>
+    const nav = <nav class="blog-index-nav">{archiveLink}</nav>
 
     const container = (
       <div class="blog-index-container" hide>
@@ -347,7 +343,7 @@ export class MainScene extends Scene {
     this.main.appendChild(container.element)
 
     // 为导航链接添加路由处理
-    navLinkElement.element.addEventListener('click', ev => {
+    archiveLink.element.addEventListener('click', ev => {
       if (
         new URL((ev.currentTarget as HTMLAnchorElement).href).origin ===
         location.origin

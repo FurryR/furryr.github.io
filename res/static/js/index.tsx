@@ -80,14 +80,14 @@ async function initalizeHeader() {
         {friendLink}
       </li>
     )
-    const contactLink = (
+    const aboutLink = (
       <a class="blog-nav-links-item-a" href="/about.html">
         关于我
       </a>
     )
-    const contact = (
+    const about = (
       <li class="blog-nav-links-item-last" hide>
-        {contactLink}
+        {aboutLink}
       </li>
     )
     const commandInput = <input class="blog-nav-command" placeholder=">" />
@@ -127,7 +127,7 @@ async function initalizeHeader() {
             {home}
             {archive}
             {friend}
-            {contact}
+            {about}
             {commandBar}
           </ul>
         </nav>
@@ -140,7 +140,7 @@ async function initalizeHeader() {
       await Animations.fadeout(commandDropdown, 200)
       commandDropdown.hide()
     })
-    ;[homeLink, archiveLink].forEach(v =>
+    ;[homeLink, archiveLink, aboutLink].forEach(v =>
       v.element.addEventListener('click', ev => Route.instance.handleAnchor(ev))
     )
     // TODO: search bar
@@ -149,12 +149,12 @@ async function initalizeHeader() {
     await Animations.fadein(subtitle, 400)
     await Animations.fadein(hitokoto, 200)
     await Animations.wait(200)
-    ;[home, archive, friend, contact].forEach(navInit)
+    ;[home, archive, friend, about].forEach(navInit)
     await Animations.fadein(home, 150)
     await Animations.fadein(archive, 150)
     await Animations.fadein(friend, 150)
-    await Animations.fadein(contact, 150)
-    await Promise.all([home, archive, friend, contact].map(navPlay))
+    await Animations.fadein(about, 150)
+    await Promise.all([home, archive, friend, about].map(navPlay))
     await Animations.fadein(commandBar, 150)
   }).promise
 }
@@ -322,6 +322,12 @@ window.Route = Route /** For debug purposes */
     Route.instance = new Route(dummyScene as any)
     Route.instance.currentAnimation = animationContext
     routeLoaded.resolve()
+    document.addEventListener('click', ev => {
+      const target = ev.target as HTMLElement
+      if (target.closest('a,button,input,select,textarea,[role="button"]'))
+        return
+      Route.instance.currentAnimation?.skip()
+    })
     await Promise.all([headerPromise, mainResult.promise, footerPromise])
     try {
       firstScene = await firstScene

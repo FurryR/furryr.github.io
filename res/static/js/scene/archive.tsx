@@ -145,7 +145,7 @@ export class ArchiveScene extends Scene {
     const renderPage = async (page, animate = true, showLoading = false) => {
       // 打断当前正在进行的动画
       if (this.currentAnimationScope) {
-        this.currentAnimationScope.skip()
+        this.currentAnimationScope.abort()
         this.currentAnimationScope = null
       }
 

@@ -101,6 +101,7 @@ code {
   position: relative;
   overflow-x: hidden;
   white-space: pre-wrap;
+  line-height: 0.9;
 }
 
 code::after {

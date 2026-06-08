@@ -108,6 +108,9 @@
 
 .blog-index-nav {
   margin-top: 1em;
+  display: flex;
+  justify-content: center;
+  gap: 1.5em;
 }
 
 .blog-index-nav-link {

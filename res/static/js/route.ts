@@ -14,6 +14,7 @@ export class Route {
     () => Promise<SceneModule>
   >([
     [/^\/(?:index.html)?$/, () => import('/static/js/scene/main.tsx')],
+    [/^\/about\.html$/, () => import('/static/js/scene/about.tsx')],
     [/^\/archive\.html$/, () => import('/static/js/scene/archive.tsx')],
     [/^\/posts\/.*\.html$/, () => import('/static/js/scene/blog.tsx')]
   ])
@@ -36,7 +37,7 @@ export class Route {
       previousRequest.reject(new Error('Cancelled'))
     }
     if (currentAnimation) {
-      currentAnimation.skip()
+      currentAnimation.abort()
       await currentAnimation.promise
     }
     this.currentAnimation = scope(async Animations => {

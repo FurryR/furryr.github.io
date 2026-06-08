@@ -19,11 +19,15 @@ export type AnimationRunner = {
 
 export type AnimationScope = {
   promise: Promise<void>
+  abort(): void
   skip(): void
-  readonly skipped: boolean
+  readonly aborted: boolean
 }
 
-type AnimationAbort = () => void
+type AnimationEntry = {
+  finish(): void
+  cancel(): void
+}
 
 export class AnimationElement<T extends HTMLElement = HTMLElement> {
   element: T
@@ -245,34 +249,48 @@ export const Elements = {
 export function scope(
   fn: (Animations: AnimationRunner) => Promise<void>
 ): AnimationScope {
+  let aborted = false
   let skipped = false
-  let runningAnimations: AnimationAbort[] = []
+  let runningAnimations: AnimationEntry[] = []
   const animate: AnimationRunner['animate'] = (elem, keyframes, options) => {
-    if (skipped) return Promise.resolve()
+    if (aborted) return Promise.resolve()
+    if (skipped) {
+      skipped = false
+      return Promise.resolve()
+    }
     const animation = elem.element.animate(keyframes, options)
 
     return new Promise<void>(resolve => {
-      const abort = () => {
-        animation.cancel()
-        resolve()
+      const entry: AnimationEntry = {
+        finish() {
+          animation.finish()
+        },
+        cancel() {
+          animation.cancel()
+          resolve()
+        }
       }
       animation.addEventListener('finish', () => {
-        runningAnimations = runningAnimations.filter(a => a !== abort)
+        runningAnimations = runningAnimations.filter(a => a !== entry)
         resolve()
       })
-      runningAnimations.push(abort)
+      runningAnimations.push(entry)
     })
   }
 
   const wait: AnimationRunner['wait'] = ms => {
-    if (skipped) return Promise.resolve()
+    if (aborted) return Promise.resolve()
     return new Promise<void>(resolve => {
-      const abort = resolve
-      runningAnimations.push(abort)
+      const entry: AnimationEntry = {
+        finish: resolve,
+        cancel: resolve
+      }
+      runningAnimations.push(entry)
       const end = performance.now() + ms
       requestAnimationFrame(function handle(timestamp) {
-        if (skipped || timestamp >= end) {
-          runningAnimations = runningAnimations.filter(a => a !== abort)
+        if (aborted || skipped || timestamp >= end) {
+          if (skipped) skipped = false
+          runningAnimations = runningAnimations.filter(a => a !== entry)
           resolve()
         } else {
           requestAnimationFrame(handle)
@@ -286,7 +304,7 @@ export function scope(
     duration,
     easing = 'ease-out'
   ) => {
-    if (skipped) return Promise.resolve()
+    if (aborted) return Promise.resolve()
     elem.show()
     return animate(
       elem,
@@ -310,7 +328,7 @@ export function scope(
     duration,
     easing = 'ease-out'
   ) => {
-    if (skipped) return Promise.resolve()
+    if (aborted) return Promise.resolve()
     return animate(
       elem,
       [
@@ -337,15 +355,22 @@ export function scope(
   const promise = fn(obj)
   return {
     promise,
-    skip() {
-      skipped = true
-      for (const abort of runningAnimations) {
-        abort()
+    abort() {
+      aborted = true
+      for (const entry of runningAnimations) {
+        entry.cancel()
       }
       runningAnimations = []
     },
-    get skipped() {
-      return skipped
+    skip() {
+      skipped = true
+      for (const entry of runningAnimations) {
+        entry.finish()
+      }
+      runningAnimations = []
+    },
+    get aborted() {
+      return aborted
     }
   }
 }
