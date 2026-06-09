@@ -6,12 +6,19 @@
  */
 
 import '/static/js/jsx-runtime.ts'
-import { AnimationElement, Elements, scope } from '/static/js/util/animation.ts'
+import { AnimationElement, scope } from '/static/js/util/animation.ts'
 import type { AnimationRunner } from '/static/js/util/animation.ts'
 import { Route } from '/static/js/route.ts'
 import { randomHitokoto } from '/static/js/hitokoto.ts'
 import { withResolvers } from '/static/js/util/promise.ts'
 import { addStyle } from '/static/js/util/style.ts'
+import {
+  filterBangs,
+  parseBang,
+  executeBang,
+  getBangLabel,
+  type BangCommand
+} from '/static/js/bang.ts'
 
 async function initalizeHeader(Animations: AnimationRunner) {
   function navInit(elem) {
@@ -51,7 +58,7 @@ async function initalizeHeader(Animations: AnimationRunner) {
     </span>
   )
   const homeLink = (
-    <a class="blog-nav-links-item-a" href="/index.html">
+    <a class="blog-nav-links-item-a" href="/">
       主页
     </a>
   )
@@ -61,7 +68,7 @@ async function initalizeHeader(Animations: AnimationRunner) {
     </li>
   )
   const archiveLink = (
-    <a class="blog-nav-links-item-a" href="/archive.html">
+    <a class="blog-nav-links-item-a" href="/archive">
       归档
     </a>
   )
@@ -71,7 +78,7 @@ async function initalizeHeader(Animations: AnimationRunner) {
     </li>
   )
   const friendLink = (
-    <a class="blog-nav-links-item-a" href="/friend.html">
+    <a class="blog-nav-links-item-a" href="/friend">
       友链
     </a>
   )
@@ -81,7 +88,7 @@ async function initalizeHeader(Animations: AnimationRunner) {
     </li>
   )
   const aboutLink = (
-    <a class="blog-nav-links-item-a" href="/about.html">
+    <a class="blog-nav-links-item-a" href="/about">
       关于我
     </a>
   )
@@ -93,20 +100,7 @@ async function initalizeHeader(Animations: AnimationRunner) {
   const commandInput = <input class="blog-nav-command" placeholder=">" />
   const commandDropdown = (
     <div class="blog-nav-command-dropdown" hide>
-      <div class="blog-nav-command-dropdown-container">
-        <p
-          style={{
-            textWrapMode: 'nowrap',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            margin: '0'
-          }}
-        >
-          以后应该会有搜索和命令功能
-        </p>
-      </div>
+      <div class="blog-nav-command-dropdown-container" />
     </div>
   )
   const commandBar = (
@@ -133,17 +127,174 @@ async function initalizeHeader(Animations: AnimationRunner) {
       </nav>
     </header>
   )
+
+  const dropdownContainer = commandDropdown.element.querySelector(
+    '.blog-nav-command-dropdown-container'
+  )!
+  const cmdInput = commandInput.element as HTMLInputElement
+
+  let selectIndex = -1
+
+  function updateSelection(items: NodeListOf<Element>) {
+    items.forEach(item => item.classList.remove('selected'))
+    if (selectIndex >= 0 && selectIndex < items.length) {
+      items[selectIndex].classList.add('selected')
+      items[selectIndex].scrollIntoView({ block: 'nearest' })
+    }
+  }
+
+  function renderHelp(command: BangCommand) {
+    const help = document.createElement('div')
+    help.className = 'blog-nav-command-dropdown-help'
+
+    let html = `<div class="blog-nav-command-dropdown-help-name">/${command.name}</div>`
+    html += `<div class="blog-nav-command-dropdown-help-desc">${command.description}</div>`
+    if (command.hasQuery) {
+      html += `<div class="blog-nav-command-dropdown-help-usage">用法: /${command.name} &lt;搜索内容&gt;</div>`
+    }
+    help.innerHTML = html
+    dropdownContainer.appendChild(help)
+  }
+
+  function renderDropdown() {
+    const value = cmdInput.value
+    dropdownContainer.innerHTML = ''
+    selectIndex = -1
+
+    if (!value) {
+      const hint = document.createElement('div')
+      hint.className = 'blog-nav-command-dropdown-empty'
+      hint.textContent = '输入 "/" 以开始'
+      dropdownContainer.appendChild(hint)
+      return
+    }
+
+    if (!value.startsWith('/')) {
+      const empty = document.createElement('div')
+      empty.className = 'blog-nav-command-dropdown-empty'
+      empty.textContent = '未知命令'
+      dropdownContainer.appendChild(empty)
+      return
+    }
+
+    const { command: exactCommand } = parseBang(value)
+
+    if (exactCommand) {
+      renderHelp(exactCommand)
+      return
+    }
+
+    const matches = filterBangs(value)
+    if (matches.length === 0) {
+      const empty = document.createElement('div')
+      empty.className = 'blog-nav-command-dropdown-empty'
+      empty.textContent = '未知命令'
+      dropdownContainer.appendChild(empty)
+      return
+    }
+
+    matches.forEach(bang => {
+      const item = document.createElement('div')
+      item.className = 'blog-nav-command-dropdown-item'
+      item.innerHTML = `<span class="blog-nav-command-dropdown-item-name">${getBangLabel(bang)}</span><span class="blog-nav-command-dropdown-item-desc">${bang.description}</span>`
+      item.addEventListener('click', () => {
+        cmdInput.value = `/${bang.name} `
+        const len = cmdInput.value.length
+        cmdInput.setSelectionRange(len, len)
+        renderDropdown()
+      })
+      dropdownContainer.appendChild(item)
+    })
+  }
+
   commandInput.element.addEventListener('focus', async () => {
     await Animations.fadein(commandDropdown, 200)
+    renderDropdown()
   })
   commandInput.element.addEventListener('blur', async () => {
     await Animations.fadeout(commandDropdown, 200)
     commandDropdown.hide()
   })
-  ;[homeLink, archiveLink, aboutLink].forEach(v =>
+  commandInput.element.addEventListener('input', () => {
+    renderDropdown()
+  })
+  commandInput.element.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') {
+      const value = cmdInput.value
+      if (!value) {
+        const hint = document.createElement('div')
+        hint.className = 'blog-nav-command-dropdown-empty'
+        hint.textContent = '输入 "/" 以开始'
+        dropdownContainer.appendChild(hint)
+        return
+      }
+
+      if (!value.startsWith('/')) return
+
+      if (selectIndex >= 0) {
+        const items = dropdownContainer.querySelectorAll(
+          '.blog-nav-command-dropdown-item'
+        )
+        if (selectIndex < items.length) {
+          ;(items[selectIndex] as HTMLElement).click()
+        }
+        ev.preventDefault()
+        return
+      }
+
+      const { command: exactCommand } = parseBang(value)
+      if (exactCommand) {
+        if (
+          !exactCommand.hasQuery ||
+          value.slice(exactCommand.name.length + 1).startsWith(' ')
+        ) {
+          executeBang(value)
+          cmdInput.blur()
+        } else {
+          cmdInput.value = `/${exactCommand.name} `
+          const len = cmdInput.value.length
+          cmdInput.setSelectionRange(len, len)
+          renderDropdown()
+        }
+      } else {
+        const matches = filterBangs(value)
+        if (matches.length > 0) {
+          cmdInput.value = `/${matches[0].name} `
+          const len = cmdInput.value.length
+          cmdInput.setSelectionRange(len, len)
+          renderDropdown()
+        }
+      }
+      ev.preventDefault()
+    } else if (ev.key === 'Escape') {
+      cmdInput.value = ''
+      dropdownContainer.innerHTML = ''
+      selectIndex = -1
+      cmdInput.blur()
+    } else if (ev.key === 'ArrowDown') {
+      const items = dropdownContainer.querySelectorAll(
+        '.blog-nav-command-dropdown-item'
+      )
+      if (items.length === 0) return
+      selectIndex = Math.min(selectIndex + 1, items.length - 1)
+      updateSelection(items)
+      ev.preventDefault()
+    } else if (ev.key === 'ArrowUp') {
+      const items = dropdownContainer.querySelectorAll(
+        '.blog-nav-command-dropdown-item'
+      )
+      if (items.length === 0) return
+      selectIndex = Math.max(selectIndex - 1, 0)
+      updateSelection(items)
+      ev.preventDefault()
+    }
+  })
+  commandDropdown.element.addEventListener('mousedown', ev => {
+    ev.preventDefault()
+  })
+  ;[homeLink, archiveLink, friendLink, aboutLink].forEach(v =>
     v.element.addEventListener('click', ev => Route.instance.handleAnchor(ev))
   )
-  // TODO: search bar
   document.body.appendChild(header.element)
   await Animations.fadein(title, 400)
   await Animations.fadein(subtitle, 400)
@@ -242,10 +393,11 @@ function initalizeMain(Animations: AnimationRunner) {
   }
 }
 async function initalizeFooter(Animations, contentPromise) {
-  const footer = Elements.footer([])
-    .content('© 2026 熊谷 凌. All rights reserved.')
-    .class('blog-footer')
-    .hide()
+  const footer = (
+    <footer class="blog-footer" hide>
+      © 2026 熊谷 凌. All rights reserved.
+    </footer>
+  )
   document.body.appendChild(footer.element)
   await contentPromise
   await Animations.fadein(footer, 200)
@@ -296,6 +448,7 @@ window.Route = Route /** For debug purposes */
       const target = ev.target as HTMLElement
       if (target.closest('a,button,input,select,textarea')) return
       animationContext.skip()
+      Route.instance?.currentAnimation?.skip()
     })
     let firstScene: any = Route.parse(
       Promise.resolve(cloned),
@@ -323,7 +476,8 @@ window.Route = Route /** For debug purposes */
       dispose() {}
     }
     Route.instance = new Route(dummyScene as any)
-    Route.instance.currentAnimation = animationContext
+    const currentAnimation = scope(async () => {})
+    Route.instance.currentAnimation = currentAnimation
     routeLoaded.resolve()
     await Promise.all([headerPromise, mainResult.promise, footerPromise])
     try {

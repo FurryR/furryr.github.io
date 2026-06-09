@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "dev": "http-server ./res/ -c-1 -a localhost -p 8080",
     "update-archive": "node scripts/update-archive.js",
-    "create-post": "node scripts/create-post.js"
+    "create-post": "node scripts/create-post.js",
+    "update-runtime": "node scripts/update-runtime.js"
   },
   "repository": {
     "type": "git",

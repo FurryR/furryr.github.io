@@ -149,6 +149,52 @@ body {
   display: none; /* Hide scrollbar for WebKit browsers */
 }
 
+.blog-nav-command-dropdown-item {
+  padding: 0.6em 0.8em;
+  cursor: pointer;
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
+.blog-nav-command-dropdown-item:hover,
+.blog-nav-command-dropdown-item.selected {
+  background-color: rgba(29, 86, 133, 0.1);
+}
+.blog-nav-command-dropdown-item-name {
+  font-weight: bold;
+  flex-shrink: 0;
+  color: rgb(29, 86, 133);
+}
+.blog-nav-command-dropdown-item-desc {
+  color: #666;
+  font-size: 0.9em;
+}
+.blog-nav-command-dropdown-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #999;
+  text-wrap-mode: nowrap;
+}
+
+.blog-nav-command-dropdown-help {
+  padding: 0.8em;
+}
+.blog-nav-command-dropdown-help-name {
+  font-weight: bold;
+  font-size: 1.05em;
+  margin-bottom: 0.3em;
+}
+.blog-nav-command-dropdown-help-desc {
+  color: #666;
+  margin-bottom: 0.3em;
+}
+.blog-nav-command-dropdown-help-usage {
+  color: #888;
+  font-size: 0.9em;
+}
+
 .blog-nav-links-item-a {
   text-wrap-mode: nowrap;
   text-decoration: none;

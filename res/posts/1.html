@@ -2,6 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/avif" href="/favicon.avif" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>第一篇文章 / 浅谈从零制作博客的一些感想</title>
     <meta
@@ -14,10 +15,9 @@
       <category>前端</category>
       <tag>Javascript HTML</tag>
     </blog>
-    <tsconfig src="/tsconfig.browser.json"></tsconfig>
     <script
-      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest"
-      raw
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@1.0.8"
+      tsconfig="/tsconfig.browser.json"
     ></script>
     <script
       src="/static/js/index.tsx"
@@ -26,9 +26,6 @@
       defer
     ></script>
     <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
-    <noscript
-      ><link rel="stylesheet" href="/static/css/noscript/blog.css"
-    /></noscript>
   </head>
   <body>
     <article>
@@ -64,8 +61,11 @@
         这次的博客设计同样起源于暑假的灵光一现，只不过这次我想到——要是博客页面本身就可以充当元数据和索引呢？
       </p>
       <p>
-        结果就搞出了这样的渲染/索引两用的页面。事实上，效果非常不错（不提兼容性的话）。人类可读，不需要非常繁杂的构建工作，并且
-        noscript 下的支持很好。
+        结果就搞出了这样的渲染/索引两用的页面。事实上，效果非常不错（不提兼容性的话）。人类可读，不需要非常繁杂的构建工作，<span
+          style="text-decoration: line-through"
+          >并且 noscript 下的支持很好。</span
+        >
+        2026/6/9 追记：由于维护过于不便，已删除 noscript 支持。
       </p>
       <p>
         并且，这样的设计还有利于动态解析，从而可以实现不输各种成熟框架的转场效果

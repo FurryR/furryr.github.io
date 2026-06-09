@@ -2,16 +2,16 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/avif" href="/favicon.avif" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>熊谷凌的博客 / 关于我</title>
     <meta
       name="description"
       content="关于熊谷凌的简短介绍，包含个人兴趣、技术方向和这个博客的用途。"
     />
-    <tsconfig src="/tsconfig.browser.json"></tsconfig>
     <script
-      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest"
-      raw
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@1.0.8"
+      tsconfig="/tsconfig.browser.json"
     ></script>
     <script
       src="/static/js/index.tsx"
@@ -20,9 +20,6 @@
       defer
     ></script>
     <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
-    <noscript
-      ><link rel="stylesheet" href="/static/css/noscript/about.css"
-    /></noscript>
   </head>
   <body>
     <main>
@@ -92,7 +89,7 @@
     <sidebar>
       <h2 class="blog-about-sidebar-title">$ whoami</h2>
       <p class="blog-about-sidebar-text">熊谷凌。可食用的猞猁狼。</p>
-      <a class="blog-about-sidebar-link" href="/archive.html">查看文章归档</a>
+      <a class="blog-about-sidebar-link" href="/archive">查看文章归档</a>
     </sidebar>
   </body>
 </html>

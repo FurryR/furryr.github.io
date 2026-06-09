@@ -103,6 +103,12 @@
   margin: 0;
 }
 
+.blog-catalog-list li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .blog-catalog-list::-webkit-scrollbar {
   display: none;
 }

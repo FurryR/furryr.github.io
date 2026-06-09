@@ -13,10 +13,11 @@ export class Route {
     RegExp,
     () => Promise<SceneModule>
   >([
-    [/^\/(?:index.html)?$/, () => import('/static/js/scene/main.tsx')],
-    [/^\/about\.html$/, () => import('/static/js/scene/about.tsx')],
-    [/^\/archive\.html$/, () => import('/static/js/scene/archive.tsx')],
-    [/^\/posts\/.*\.html$/, () => import('/static/js/scene/blog.tsx')]
+    [/^\/(?:index\.html)?$/, () => import('/static/js/scene/main.tsx')],
+    [/^\/about(?:\.html)?$/, () => import('/static/js/scene/about.tsx')],
+    [/^\/archive(?:\.html)?$/, () => import('/static/js/scene/archive.tsx')],
+    [/^\/friend(?:\.html)?$/, () => import('/static/js/scene/friend.tsx')],
+    [/^\/posts\/.*(?:\.html)?$/, () => import('/static/js/scene/blog.tsx')]
   ])
   static instance: Route
   current: Scene

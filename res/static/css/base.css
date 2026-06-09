@@ -95,6 +95,16 @@ article em {
 code {
   font-size: 0.9em;
   background-color: #eee;
+  padding: 0;
+  border-radius: 4px;
+  display: inline;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  line-height: 0.9;
+}
+pre > code {
+  font-size: 0.9em;
+  background-color: #eee;
   padding: 1em 1em;
   border-radius: 4px;
   display: block;
@@ -104,7 +114,7 @@ code {
   line-height: 0.9;
 }
 
-code::after {
+pre > code[lang]:not([lang=''])::after {
   content: attr(lang);
   position: absolute;
   top: 0;
@@ -119,12 +129,12 @@ code::after {
   pointer-events: none;
 }
 
-code:hover::after {
+pre > code[lang]:not([lang='']):hover::after {
   opacity: 1;
 }
 
 @media (prefers-color-scheme: dark) {
-  code::after {
+  pre > code[lang]:not([lang=''])::after {
     color: black;
   }
 }

@@ -161,6 +161,7 @@
 }
 
 .blog-archive-pagination-input[type='number'] {
+  appearance: initial;
   -moz-appearance: textfield;
 }
 
@@ -169,7 +170,21 @@
 }
 
 .blog-archive-sidebar-title {
-  margin-bottom: 1em;
+  font-size: 1.5em;
+  margin: 0;
+  margin-bottom: 0.5em;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
 }
 
 .blog-archive-sidebar-info {
@@ -184,22 +199,23 @@
 }
 
 .blog-archive-filter-group {
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
 }
 
 .blog-archive-filter-label {
   display: block;
-  margin-bottom: 0.5em;
-  font-weight: bold;
+  margin-bottom: 0.3em;
+  font-size: 0.9em;
+  color: #555;
 }
 
 .blog-archive-filter-select {
   width: 100%;
-  padding: 0.5em;
+  padding: 0.25em 0.4em;
   border: 1px solid lightgray;
   border-radius: 4px;
   background: transparent;
-  font-size: 0.9em;
+  font-size: 0.85em;
   outline: none;
   cursor: pointer;
 }

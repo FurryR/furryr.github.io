@@ -38,7 +38,7 @@ export class MainScene extends Scene {
     }
 
     try {
-      const response = await fetch('/archive.html')
+      const response = await fetch('/archive')
       const text = await response.text()
       const dom = new DOMParser().parseFromString(text, 'text/html')
       const index = dom.querySelector('index')
@@ -325,7 +325,7 @@ export class MainScene extends Scene {
 
     // 导航链接
     const archiveLink = (
-      <a href="/archive.html" class="blog-index-nav-link">
+      <a href="/archive" class="blog-index-nav-link">
         查看所有文章
       </a>
     )

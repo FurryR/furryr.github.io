@@ -76,6 +76,7 @@ function generatePostHtml(metadata, content = '') {
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/avif" href="/favicon.avif" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
@@ -85,10 +86,9 @@ function generatePostHtml(metadata, content = '') {
       <category>${escapeHtml(category)}</category>
       <tag>${escapeHtml(tagString)}</tag>
     </blog>
-    <tsconfig src="/tsconfig.browser.json"></tsconfig>
     <script
-      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@latest"
-      raw
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@1.0.8"
+      tsconfig="/tsconfig.browser.json"
     ></script>
     <script
       src="/static/js/index.tsx"
@@ -97,9 +97,6 @@ function generatePostHtml(metadata, content = '') {
       defer
     ></script>
     <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
-    <noscript
-      ><link rel="stylesheet" href="/static/css/noscript/blog.css"
-    /></noscript>
   </head>
   <body>
     <article>

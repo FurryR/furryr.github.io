@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/avif" href="/favicon.avif" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>尝试在前端直接跑 Typescript</title>
+    <meta
+      name="description"
+      content="可是我是真的很想在前端不编译就能用上 TSX 啊！"
+    />
+    <blog>
+      <author>熊谷 凌</author>
+      <time>2026-06-09T05:03:21.284Z</time>
+      <category>前端</category>
+      <tag>Javascript HTML</tag>
+    </blog>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@furryr/typescript-runtime@1.0.8"
+      tsconfig="/tsconfig.browser.json"
+    ></script>
+    <script
+      src="/static/js/index.tsx"
+      type="text/typescript-tsx"
+      async
+      defer
+    ></script>
+    <link rel="stylesheet" href="/static/css/preload.css" blog-preload />
+  </head>
+  <body>
+    <article>
+      <h1>警告</h1>
+      <blockquote>
+        在前端跑 Typescript 很好，那性能怎么办？<br />如果不需要极致的 geek
+        style，我不建议你真的在自己的商务产品中原生跑 Typescript。
+      </blockquote>
+      <h1>前言</h1>
+      <p>非常喜欢 TypeScript 带来的鲁棒性，以及它的那个 JSX。</p>
+      <p>
+        但是显然前端不加 bundler/tsc 是用不了的。tsc 速度比较神秘，加
+        webpack/tsup 的话我基于 JS 特性的 router/懒加载 就全毁了。
+      </p>
+      <p>但是看着那个框架里的 <code>Elements.p</code> 又难受得要死。</p>
+      <p>嗯对，于是就考虑是否能在前端原生运行 Typescript/TSX。</p>
+      <h1>先人</h1>
+      <p>在运行 TS 这个方面，有两位先人存在，不过这两位实现的效果都一般般。</p>
+      <ul>
+        <li>
+          <a href="https://sirisian.github.io/ecmascript-types/"
+            >ECMAScript 的 Optional Static Typing 提案</a
+          >。显然，这玩意不支持 TSX，而且对于一些可擦除的 descriptor (private
+          protected etc.) 支持也是几乎没有的。
+        </li>
+        <li>
+          <a href="https://github.com/klesun/ts-browser">ts-browser</a
+          >。兼容性不明，类型擦除基于正则，且 module resolution 非常有问题。
+        </li>
+      </ul>
+      <p>于是就只能自己写了。</p>
+      <h1>尝试</h1>
+      <p>
+        由于使用 TSX 只需要做语法糖转换 + 类型擦除就可以了，我们可以通过打包一个
+        babel，然后使用 <code>MutationObserver</code> 监听 script tag
+        的插入从而实现实时转译 TypeScript 到 JavaScript。
+      </p>
+      <p>
+        对于转换后的代码，我们只需要生成一个 blob URL 然后直接将打包后的 blob
+        link 扔到 src，脚本就会自动运行。
+      </p>
+      <p>这一部分属于 JavaScript 基操，并没有什么难点。</p>
+      <h2>依赖解析</h2>
+      <p>
+        难点在于，如何处理 TypeScript 脚本内的 static import 和
+        <span style="font-weight: bold">任何脚本内的 dynamic import</span>。
+      </p>
+      <p>
+        比方说，我有一个 js 脚本去 await import 了一个 TS
+        脚本，如果我们不处理就会导致报错。
+      </p>
+      <p>
+        对于 static import，我的做法是在
+        <code>traverse</code> 的时候，先记录下所有的 import 的 source
+        和它们对应的 node，并且完成其它的擦除工作；traverse
+        一遍之后我只需要递归处理相关文件，然后直接修改对应的 source 再
+        generate。
+      </p>
+      <p>
+        同时，引入一个 Map 来记录所有已经转译的 URL -> blob URL
+        的映射。再处理到相同文件时，我们只需要返回同一个 blob URL，浏览器已有的
+        ESM 机制就能自动处理 cache/重复加载的问题。
+      </p>
+      <h2>动态 <code>import</code> 遇到的问题</h2>
+      <p>
+        其实解决 dynamic import / import.meta
+        也很简单，把它们换成一个自己生成的对象就可以了。由于 import
+        本身不是一个对象或者函数，它是一个 keyword，所以我们可以分情况替换成函数
+        / 对象。
+      </p>
+      <p>
+        问题是，我希望这个库不会污染全局环境，所以直接换成
+        <code>window.__ts</code> 这种方案是肯定不行的。
+      </p>
+      <p>此外，用 window.__ts 也会导致时序问题——我的库初始化太慢。</p>
+      <p>那怎么样才能让不同模块共享同一个对象，没有时序问题且不污染全局呢？</p>
+      <h2>匿名模块</h2>
+      <p>
+        解决方案也十分简单——创建一个匿名模块，导出
+        <code>Promise.withResolvers()</code>，然后需要用 __ts 的去等里面的
+        Promise，我在合适的场合 fulfill 它。
+      </p>
+      <p>
+        这样只要导入的 url
+        一致，这个对象就会在所有模块间共享，因而所有模块都拿得到 __ts 对象。
+      </p>
+      <h1>npm 发布</h1>
+      <p>
+        我将模块发布在了
+        <a href="https://www.npmjs.com/package/@furryr/typescript-runtime"
+          >npmjs</a
+        >。欢迎取用喵~
+      </p>
+      <p>
+        其实感觉实现这个模块并没有什么好写的，但是它毕竟是博客的新基建，那我就提一嘴（
+      </p>
+    </article>
+  </body>
+</html>

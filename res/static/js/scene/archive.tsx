@@ -55,7 +55,7 @@ export class ArchiveScene extends Scene {
   }
 
   async new(Animations: AnimationContext, fromScene: Scene | null) {
-    document.title = '归档'
+    document.title = '熊谷凌的博客 / 归档'
     if (fromScene) {
       await Scene.Disposes.foldAndFadeout(Animations, this.main, this.sidebar)
       await fromScene.dispose()
@@ -461,7 +461,7 @@ export class ArchiveScene extends Scene {
 
     await Animations.fadein(title, 200)
     await Animations.fadein(subtitle, 200)
-    await Animations.wait(200)
+    // await Animations.wait(200)
 
     // 渲染第一页
     await renderPage(this.currentPage, true)

@@ -9,12 +9,6 @@ export class Scene {
   sidebar: HTMLDivElement
 
   static Transitions = {
-    /**
-     *
-     * @param {Scene} Animations
-     * @param {HTMLElement} main
-     * @param {HTMLElement} sidebar
-     */
     async loading(
       Animations: AnimationContext,
       main: HTMLElement,
@@ -89,11 +83,6 @@ export class Scene {
       }
     }
   }
-  /**
-   *
-   * @param {HTMLDivElement} main
-   * @param {HTMLDivElement} sidebar
-   */
   constructor(main: HTMLDivElement, sidebar: HTMLDivElement) {
     this.main = main
     this.sidebar = sidebar
@@ -102,10 +91,8 @@ export class Scene {
   async new(_scope: AnimationContext, _fromScene: Scene | null) {
     throw new Error('Not implemented')
   }
-  /**
-   * @returns {Promise<void> | void}
-   */
-  dispose() {
+
+  dispose(): Promise<void> | void {
     throw new Error('Not implemented')
   }
 }
