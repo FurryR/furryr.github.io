@@ -122,12 +122,49 @@
 .blog-about-portrait-panel {
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .blog-about-portrait {
   width: 100%;
   max-width: 240px;
   border-radius: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.blog-about-portrait-deco {
+  position: absolute;
+  background: none;
+  border: 1.5px solid #4a9eff;
+  opacity: 0.55;
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.deco-1 {
+  width: 130%;
+  height: 8px;
+  top: 15%;
+  left: -15%;
+  transform: skewY(-18deg);
+}
+
+.deco-2 {
+  width: 120%;
+  height: 6px;
+  top: 48%;
+  left: -10%;
+  transform: skewY(22deg);
+  opacity: 0.35;
+}
+
+.deco-3 {
+  width: 140%;
+  height: 7px;
+  bottom: 18%;
+  right: -20%;
+  transform: skewY(-12deg);
 }
 
 .blog-about-content {

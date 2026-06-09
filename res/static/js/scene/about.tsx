@@ -62,6 +62,15 @@ export class AboutScene extends Scene {
     const portrait = new AnimationElement(
       mainContent.querySelector('.blog-about-portrait') as HTMLElement
     )
+    const deco1 = new AnimationElement(
+      mainContent.querySelector('.deco-1') as HTMLElement
+    )
+    const deco2 = new AnimationElement(
+      mainContent.querySelector('.deco-2') as HTMLElement
+    )
+    const deco3 = new AnimationElement(
+      mainContent.querySelector('.deco-3') as HTMLElement
+    )
     const title = new AnimationElement(
       mainContent.querySelector('.blog-about-title') as HTMLElement
     )
@@ -83,6 +92,9 @@ export class AboutScene extends Scene {
 
     layout.hide()
     portrait.hide()
+    deco1.style('opacity', '0')
+    deco2.style('opacity', '0')
+    deco3.style('opacity', '0')
     title.hide()
     split.hide()
     bodyContent.hide()
@@ -110,6 +122,36 @@ export class AboutScene extends Scene {
     await Animations.wait(100)
     await Animations.fadein(layout, 200)
     await Animations.fadein(portrait, 200)
+
+    await Animations.wait(100)
+
+    const decoAnimation = (async () => {
+      const flicker = (finalOpacity: number) => [
+        { opacity: 0, offset: 0 },
+        { opacity: finalOpacity * 1.6, offset: 0.1 },
+        { opacity: finalOpacity * 0.3, offset: 0.2 },
+        { opacity: finalOpacity * 1.4, offset: 0.35 },
+        { opacity: finalOpacity * 0.2, offset: 0.45 },
+        { opacity: finalOpacity, offset: 1 }
+      ]
+
+      const opts = {
+        duration: 500,
+        easing: 'ease-out',
+        fill: 'forwards'
+      } as const
+
+      Animations.animate(deco1, flicker(0.55), opts)
+      await Animations.wait(100)
+      Animations.animate(deco2, flicker(0.35), opts)
+      await Animations.wait(100)
+      await Animations.animate(deco3, flicker(0.55), opts)
+    })()
+
+    // await decoAnimation
+
+    // await Animations.wait(100)
+
     await Animations.fadein(title, 200)
     await Animations.fadein(split, 200)
 
@@ -136,6 +178,7 @@ export class AboutScene extends Scene {
       sidebarLink.style.visibility = ''
       await Animations.fadein(new AnimationElement(sidebarLink), 150)
     }
+    await decoAnimation
   }
 
   dispose() {
