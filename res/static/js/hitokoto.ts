@@ -6,8 +6,7 @@ const Hitokoto = [
   'いっそ何もかも捨てちまえば。',
   'Nonsense.',
   'Ad astra per aspera.',
-  '世界の広さを、自分で知りたかった。',
-  '花さそふ 嵐の庭の 雪ならで ふりゆくものは わが身なりけり'
+  '世界の広さを、自分で知りたかった。'
 ]
 
 export function randomHitokoto() {
