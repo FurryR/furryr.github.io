@@ -83,6 +83,8 @@ body {
 .blog-hitokoto {
   font-style: italic;
   text-wrap-mode: nowrap;
+  /** Japanese font style */
+  font-family: 'Fira Code', Consolas, 'Noto Sans JP', sans-serif;
 }
 
 .blog-nav {

@@ -91,3 +91,9 @@ sidebar a {
   color: #1d5685;
   text-decoration: none;
 }
+
+@media (max-width: 650px) {
+  main > div > img {
+    display: none;
+  }
+}

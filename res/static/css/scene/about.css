@@ -133,7 +133,7 @@
 .blog-about-content {
   color: #333;
   font-size: 1em;
-  line-height: 1.8em;
+  line-height: 1em;
 }
 
 .blog-about-sidebar-title {
@@ -164,10 +164,15 @@
     gap: 1.5em;
     text-align: left;
   }
+
+  .blog-about-portrait-panel {
+    display: none;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   .blog-about-split::after {
+    color: white;
     filter: invert(1) hue-rotate(180deg);
   }
 }

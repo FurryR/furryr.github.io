@@ -122,7 +122,7 @@ export class AboutScene extends Scene {
         bodyContent,
         [
           { lineHeight: '0em', opacity: 0 },
-          { lineHeight: '1.8em', opacity: 1 }
+          { lineHeight: '1em', opacity: 1 }
         ],
         {
           duration: 300,
@@ -134,10 +134,7 @@ export class AboutScene extends Scene {
     await Animations.fadein(sidebarText, 150)
     if (sidebarLink) {
       sidebarLink.style.visibility = ''
-      await Animations.fadein(
-        new AnimationElement(sidebarLink),
-        150
-      )
+      await Animations.fadein(new AnimationElement(sidebarLink), 150)
     }
   }
 
