@@ -7,158 +7,157 @@
 
 import '/static/js/jsx-runtime.ts'
 import { AnimationElement, Elements, scope } from '/static/js/util/animation.ts'
+import type { AnimationRunner } from '/static/js/util/animation.ts'
 import { Route } from '/static/js/route.ts'
 import { randomHitokoto } from '/static/js/hitokoto.ts'
 import { withResolvers } from '/static/js/util/promise.ts'
 import { addStyle } from '/static/js/util/style.ts'
 
-async function initalizeHeader() {
-  return scope(async Animations => {
-    function navInit(elem) {
-      elem.style('marginRight', '0px')
-    }
-    function navPlay(elem) {
-      elem.style('marginRight', '')
-      return Animations.animate(
-        elem,
-        [
-          {
-            marginRight: '0em'
-          },
-          {
-            marginRight: '2em'
-          }
-        ],
+async function initalizeHeader(Animations: AnimationRunner) {
+  function navInit(elem) {
+    elem.style('marginRight', '0px')
+  }
+  function navPlay(elem) {
+    elem.style('marginRight', '')
+    return Animations.animate(
+      elem,
+      [
         {
-          duration: 200,
-          easing: 'cubic-bezier(0, 1.04, 0.96, 0.98)'
+          marginRight: '0em'
+        },
+        {
+          marginRight: '2em'
         }
-      )
-    }
-    const title = (
-      <span class="blog-title" hide>
-        熊谷 凌
-      </span>
+      ],
+      {
+        duration: 200,
+        easing: 'cubic-bezier(0, 1.04, 0.96, 0.98)'
+      }
     )
-    const subtitle = (
-      <span class="blog-subtitle" hide>
-        的博客
-      </span>
-    )
-    const hitokoto = (
-      <span class="blog-hitokoto" hide>
-        {randomHitokoto()}
-      </span>
-    )
-    const homeLink = (
-      <a class="blog-nav-links-item-a" href="/index.html">
-        主页
-      </a>
-    )
-    const home = (
-      <li class="blog-nav-links-item" hide>
-        {homeLink}
-      </li>
-    )
-    const archiveLink = (
-      <a class="blog-nav-links-item-a" href="/archive.html">
-        归档
-      </a>
-    )
-    const archive = (
-      <li class="blog-nav-links-item" hide>
-        {archiveLink}
-      </li>
-    )
-    const friendLink = (
-      <a class="blog-nav-links-item-a" href="/friend.html">
-        友链
-      </a>
-    )
-    const friend = (
-      <li class="blog-nav-links-item" hide>
-        {friendLink}
-      </li>
-    )
-    const aboutLink = (
-      <a class="blog-nav-links-item-a" href="/about.html">
-        关于我
-      </a>
-    )
-    const about = (
-      <li class="blog-nav-links-item-last" hide>
-        {aboutLink}
-      </li>
-    )
-    const commandInput = <input class="blog-nav-command" placeholder=">" />
-    const commandDropdown = (
-      <div class="blog-nav-command-dropdown" hide>
-        <div class="blog-nav-command-dropdown-container">
-          <p
-            style={{
-              textWrapMode: 'nowrap',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              margin: '0'
-            }}
-          >
-            以后应该会有搜索和命令功能
-          </p>
-        </div>
+  }
+  const title = (
+    <span class="blog-title" hide>
+      熊谷 凌
+    </span>
+  )
+  const subtitle = (
+    <span class="blog-subtitle" hide>
+      的博客
+    </span>
+  )
+  const hitokoto = (
+    <span class="blog-hitokoto" hide>
+      {randomHitokoto()}
+    </span>
+  )
+  const homeLink = (
+    <a class="blog-nav-links-item-a" href="/index.html">
+      主页
+    </a>
+  )
+  const home = (
+    <li class="blog-nav-links-item" hide>
+      {homeLink}
+    </li>
+  )
+  const archiveLink = (
+    <a class="blog-nav-links-item-a" href="/archive.html">
+      归档
+    </a>
+  )
+  const archive = (
+    <li class="blog-nav-links-item" hide>
+      {archiveLink}
+    </li>
+  )
+  const friendLink = (
+    <a class="blog-nav-links-item-a" href="/friend.html">
+      友链
+    </a>
+  )
+  const friend = (
+    <li class="blog-nav-links-item" hide>
+      {friendLink}
+    </li>
+  )
+  const aboutLink = (
+    <a class="blog-nav-links-item-a" href="/about.html">
+      关于我
+    </a>
+  )
+  const about = (
+    <li class="blog-nav-links-item-last" hide>
+      {aboutLink}
+    </li>
+  )
+  const commandInput = <input class="blog-nav-command" placeholder=">" />
+  const commandDropdown = (
+    <div class="blog-nav-command-dropdown" hide>
+      <div class="blog-nav-command-dropdown-container">
+        <p
+          style={{
+            textWrapMode: 'nowrap',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            margin: '0'
+          }}
+        >
+          以后应该会有搜索和命令功能
+        </p>
       </div>
-    )
-    const commandBar = (
-      <li class="blog-nav-item-command" hide>
-        {commandInput}
-        {commandDropdown}
-      </li>
-    )
-    const header = (
-      <header>
-        <h1 class="blog-title-container">
-          {title}
-          {subtitle}
-        </h1>
-        {hitokoto}
-        <nav class="blog-nav">
-          <ul>
-            {home}
-            {archive}
-            {friend}
-            {about}
-            {commandBar}
-          </ul>
-        </nav>
-      </header>
-    )
-    commandInput.element.addEventListener('focus', async () => {
-      await Animations.fadein(commandDropdown, 200)
-    })
-    commandInput.element.addEventListener('blur', async () => {
-      await Animations.fadeout(commandDropdown, 200)
-      commandDropdown.hide()
-    })
-    ;[homeLink, archiveLink, aboutLink].forEach(v =>
-      v.element.addEventListener('click', ev => Route.instance.handleAnchor(ev))
-    )
-    // TODO: search bar
-    document.body.appendChild(header.element)
-    await Animations.fadein(title, 400)
-    await Animations.fadein(subtitle, 400)
-    await Animations.fadein(hitokoto, 200)
-    await Animations.wait(200)
-    ;[home, archive, friend, about].forEach(navInit)
-    await Animations.fadein(home, 150)
-    await Animations.fadein(archive, 150)
-    await Animations.fadein(friend, 150)
-    await Animations.fadein(about, 150)
-    await Promise.all([home, archive, friend, about].map(navPlay))
-    await Animations.fadein(commandBar, 150)
-  }).promise
+    </div>
+  )
+  const commandBar = (
+    <li class="blog-nav-item-command" hide>
+      {commandInput}
+      {commandDropdown}
+    </li>
+  )
+  const header = (
+    <header>
+      <h1 class="blog-title-container">
+        {title}
+        {subtitle}
+      </h1>
+      {hitokoto}
+      <nav class="blog-nav">
+        <ul>
+          {home}
+          {archive}
+          {friend}
+          {about}
+          {commandBar}
+        </ul>
+      </nav>
+    </header>
+  )
+  commandInput.element.addEventListener('focus', async () => {
+    await Animations.fadein(commandDropdown, 200)
+  })
+  commandInput.element.addEventListener('blur', async () => {
+    await Animations.fadeout(commandDropdown, 200)
+    commandDropdown.hide()
+  })
+  ;[homeLink, archiveLink, aboutLink].forEach(v =>
+    v.element.addEventListener('click', ev => Route.instance.handleAnchor(ev))
+  )
+  // TODO: search bar
+  document.body.appendChild(header.element)
+  await Animations.fadein(title, 400)
+  await Animations.fadein(subtitle, 400)
+  await Animations.fadein(hitokoto, 200)
+  await Animations.wait(200)
+  ;[home, archive, friend, about].forEach(navInit)
+  await Animations.fadein(home, 150)
+  await Animations.fadein(archive, 150)
+  await Animations.fadein(friend, 150)
+  await Animations.fadein(about, 150)
+  await Promise.all([home, archive, friend, about].map(navPlay))
+  await Animations.fadein(commandBar, 150)
 }
-function initalizeMain() {
+function initalizeMain(Animations: AnimationRunner) {
   const mainContainer = (
     <div class="blog-main-content" hide>
       <div class="loading-icon" />
@@ -208,7 +207,7 @@ function initalizeMain() {
   return {
     main: mainContainer.element,
     sidebar: barContainer.element,
-    promise: scope(async Animations => {
+    promise: (async () => {
       await Animations.wait(400)
       content.show()
       await Animations.animate(
@@ -239,19 +238,17 @@ function initalizeMain() {
         await Animations.fadein(telegram, 200)
         await Animations.fadein(twitter, 200)
       })()
-    }).promise
+    })()
   }
 }
-async function initalizeFooter(contentPromise) {
-  return scope(async Animations => {
-    const footer = Elements.footer([])
-      .content('© 2026 熊谷 凌. All rights reserved.')
-      .class('blog-footer')
-      .hide()
-    document.body.appendChild(footer.element)
-    await contentPromise
-    await Animations.fadein(footer, 200)
-  }).promise
+async function initalizeFooter(Animations, contentPromise) {
+  const footer = Elements.footer([])
+    .content('© 2026 熊谷 凌. All rights reserved.')
+    .class('blog-footer')
+    .hide()
+  document.body.appendChild(footer.element)
+  await contentPromise
+  await Animations.fadein(footer, 200)
 }
 
 window.Route = Route /** For debug purposes */
@@ -295,6 +292,11 @@ window.Route = Route /** For debug purposes */
     )
     while (document.body.firstChild)
       document.body.removeChild(document.body.firstChild)
+    document.addEventListener('click', ev => {
+      const target = ev.target as HTMLElement
+      if (target.closest('a,button,input,select,textarea')) return
+      animationContext.skip()
+    })
     let firstScene: any = Route.parse(
       Promise.resolve(cloned),
       window.location.pathname
@@ -307,9 +309,10 @@ window.Route = Route /** For debug purposes */
     }
     await Animations.fadeout(new AnimationElement(document.body), 200)
     document.querySelector('link[blog-preload]')?.remove()
-    const headerPromise = initalizeHeader()
-    const mainResult = initalizeMain()
+    const headerPromise = initalizeHeader(Animations)
+    const mainResult = initalizeMain(Animations)
     const footerPromise = initalizeFooter(
+      Animations,
       Promise.all([headerPromise, mainResult.promise])
     )
     const dummyMark = Symbol('dummy')
@@ -322,12 +325,6 @@ window.Route = Route /** For debug purposes */
     Route.instance = new Route(dummyScene as any)
     Route.instance.currentAnimation = animationContext
     routeLoaded.resolve()
-    document.addEventListener('click', ev => {
-      const target = ev.target as HTMLElement
-      if (target.closest('a,button,input,select,textarea,[role="button"]'))
-        return
-      Route.instance.currentAnimation?.skip()
-    })
     await Promise.all([headerPromise, mainResult.promise, footerPromise])
     try {
       firstScene = await firstScene

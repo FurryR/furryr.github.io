@@ -212,4 +212,8 @@
     color: white;
     filter: invert(1) hue-rotate(180deg);
   }
+
+  .blog-about-portrait-deco {
+    box-shadow: 0 0 6px #4a9eff66;
+  }
 }

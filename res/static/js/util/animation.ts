@@ -264,16 +264,26 @@ export function scope(
       const entry: AnimationEntry = {
         finish() {
           animation.finish()
+          runningAnimations = runningAnimations.filter(a => a !== entry)
+          resolve()
         },
         cancel() {
           animation.cancel()
+          runningAnimations = runningAnimations.filter(a => a !== entry)
           resolve()
         }
       }
-      animation.addEventListener('finish', () => {
-        runningAnimations = runningAnimations.filter(a => a !== entry)
-        resolve()
-      })
+      animation.addEventListener(
+        'finish',
+        () => {
+          runningAnimations = runningAnimations.filter(a => a !== entry)
+          resolve()
+        },
+        {
+          once: true,
+          passive: true
+        }
+      )
       runningAnimations.push(entry)
     })
   }
