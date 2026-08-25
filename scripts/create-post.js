@@ -2,7 +2,23 @@
 
 /**
  * 创建新文章
- * 交互式向导帮助创建新文章
+ *
+ * 用法:
+ *   交互式向导（默认）:
+ *     node scripts/create-post.js
+ *   非交互模式（提供 --title 时跳过向导，供脚本/skill 调用）:
+ *     node scripts/create-post.js \
+ *       --title "文章标题" \
+ *       [--description "描述"] \
+ *       [--author "作者"] \
+ *       [--category "分类"] \
+ *       [--tags "标签1 标签2"] \
+ *       [--time "ISO时间"] \
+ *       [--content "正文HTML"] \
+ *       [--no-archive]
+ *   非交互模式会自动写入 res/posts/<下一个id>.html 并更新归档，
+ *   除非指定 --no-archive。--content 是 <article> 内的 HTML 片段，
+ *   可选；缺省时为占位文本。
  */
 
 import { writeFile, mkdir, readdir } from 'fs/promises'
@@ -10,6 +26,51 @@ import { join, dirname, basename } from 'path'
 import { fileURLToPath } from 'url'
 import enquirer from 'enquirer'
 const { Input, Confirm } = enquirer
+
+const FLAGS = {
+  title: '--title',
+  description: '--description',
+  author: '--author',
+  category: '--category',
+  tags: '--tags',
+  time: '--time',
+  content: '--content',
+  noArchive: '--no-archive'
+}
+
+function parseArgs(argv) {
+  const flags = {}
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    if (arg === FLAGS.noArchive) {
+      flags.noArchive = true
+      continue
+    }
+    const key = Object.values(FLAGS).find(k => k === arg)
+    if (key && argv[i + 1] !== undefined) {
+      flags[key] = argv[++i]
+    }
+  }
+  return flags
+}
+
+/**
+ * 从 CLI 参数解析元数据（非交互模式）
+ */
+function metadataFromArgs(flags) {
+  const tagsInput = flags[FLAGS.tags] || ''
+  return {
+    title: flags[FLAGS.title] || '',
+    description: flags[FLAGS.description] || '',
+    author: flags[FLAGS.author] || '',
+    time: flags[FLAGS.time] || new Date().toISOString(),
+    category: flags[FLAGS.category] || '',
+    tags: tagsInput
+      .split(/[,\s]+/)
+      .map(t => t.trim())
+      .filter(t => t.length > 0)
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -169,9 +230,64 @@ async function collectPostInfo() {
 }
 
 /**
+ * 非交互式创建文章
+ */
+async function createPostNonInteractive(flags) {
+  const metadata = metadataFromArgs(flags)
+
+  if (!metadata.title) {
+    console.error('❌ 非交互模式必须提供 --title')
+    process.exit(1)
+  }
+
+  const postId = await getNextPostId()
+  const filePath = join(POSTS_DIR, `${postId}.html`)
+
+  const content = flags[FLAGS.content] || ''
+
+  // 生成 HTML 内容
+  const html = generatePostHtml(metadata, content)
+
+  // 确保目录存在
+  await mkdir(dirname(filePath), { recursive: true })
+
+  // 写入文件
+  await writeFile(filePath, html, 'utf-8')
+
+  console.log(`✅ 文章创建成功: ${filePath}`)
+
+  // 更新归档
+  if (!flags.noArchive) {
+    console.log('🔄 正在更新归档页面...')
+    try {
+      const { execSync } = await import('child_process')
+      execSync('node scripts/update-archive.js', {
+        cwd: PROJECT_ROOT,
+        stdio: 'inherit'
+      })
+    } catch (error) {
+      console.error('❌ 更新归档页面失败:', error.message)
+      console.log('💡 请手动运行: npm run update-archive')
+    }
+  } else {
+    console.log('💡 提示: 记得运行 npm run update-archive 来更新归档页面')
+  }
+
+  return filePath
+}
+
+/**
  * 创建文章
  */
-async function createPost() {
+async function createPost(argv) {
+  const flags = parseArgs(argv)
+
+  // 非交互模式：提供了 --title 参数时跳过向导
+  if (flags[FLAGS.title]) {
+    await createPostNonInteractive(flags)
+    return
+  }
+
   // 收集文章信息
   const { metadata } = await collectPostInfo()
 
@@ -218,13 +334,13 @@ async function createPost() {
   console.log(`\n✅ 文章创建成功: ${filePath}`)
 
   // 询问是否更新归档
-  const updateArchivePrompt = new Confirm({
+  const confirmArchivePrompt = new Confirm({
     name: 'updateArchive',
     message: '是否立即更新归档页面？',
     initial: true
   })
 
-  const shouldUpdateArchive = await updateArchivePrompt.run()
+  const shouldUpdateArchive = await confirmArchivePrompt.run()
 
   if (shouldUpdateArchive) {
     console.log('\n🔄 正在更新归档页面...')
@@ -235,7 +351,7 @@ async function createPost() {
         cwd: PROJECT_ROOT,
         stdio: 'inherit'
       })
-    } catch {
+    } catch (error) {
       console.error('\n❌ 更新归档页面失败:', error.message)
       console.log('💡 请手动运行: npm run update-archive')
     }
@@ -245,7 +361,7 @@ async function createPost() {
 }
 
 // 运行
-createPost().catch(error => {
+createPost(process.argv.slice(2)).catch(error => {
   console.error('错误:', error)
   process.exit(1)
 })

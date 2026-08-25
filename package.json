@@ -13,6 +13,8 @@
     "dev": "http-server ./res/ -c-1 -a localhost -p 8080",
     "update-archive": "node scripts/update-archive.js",
     "create-post": "node scripts/create-post.js",
+    "list-tag": "node scripts/list-tag.js",
+    "list-category": "node scripts/list-category.js",
     "update-runtime": "node scripts/update-runtime.js"
   },
   "repository": {
